@@ -25,12 +25,16 @@
          </generated_project_files>
          <pins_profile>
             <processor_version>24.12.10</processor_version>
+            <pin_labels>
+               <pin_label pin_num="L14" pin_signal="PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16" label="P5_8/U9[19]/J9[31]" identifier="MAX_INT"/>
+            </pin_labels>
          </pins_profile>
          <functions_list>
             <function name="BOARD_InitPins">
                <description>Configures pin routing and optionally pin electrical features.</description>
                <options>
                   <callFromInitBoot>true</callFromInitBoot>
+                  <prefix></prefix>
                   <coreID>cm33_core0</coreID>
                   <enableClock>true</enableClock>
                </options>
@@ -51,6 +55,11 @@
                      </feature>
                   </dependency>
                   <dependency resourceType="SWComponent" resourceId="platform.drivers.port" description="Pins initialization requires the PORT Driver in the project." problem_level="2" source="Pins:BOARD_InitPins">
+                     <feature name="enabled" evaluation="equal" configuration="cm33_core0">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
+                  <dependency resourceType="SWComponent" resourceId="platform.drivers.gpio" description="Pins initialization requires the GPIO Driver in the project." problem_level="2" source="Pins:BOARD_InitPins">
                      <feature name="enabled" evaluation="equal" configuration="cm33_core0">
                         <data>true</data>
                      </feature>
@@ -91,6 +100,11 @@
                         <pin_feature name="pull_enable" value="disable"/>
                         <pin_feature name="input_buffer" value="enable"/>
                         <pin_feature name="invert_input" value="normal"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="GPIO5" signal="GPIO, 8" pin_num="L14" pin_signal="PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16">
+                     <pin_features>
+                        <pin_feature name="direction" value="INPUT"/>
                      </pin_features>
                   </pin>
                </pins>
