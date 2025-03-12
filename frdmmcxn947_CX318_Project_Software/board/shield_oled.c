@@ -10,7 +10,7 @@
 #include "MCXN947_cm33_core0.h"
 #include "fsl_debug_console.h"
 #include "fsl_lpi2c.h"
-#include "oled.h"
+#include "shield_oled.h"
 
 uint8_t currCharLoc[2] = {0, 0}; // curCharLoc[0] = current char within a page (0-21), curCharLoc[1] = current page (0-7)
 

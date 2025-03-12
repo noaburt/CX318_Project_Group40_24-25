@@ -26,7 +26,11 @@ void BOARD_InitHardware(void)
     CLOCK_SetClkDiv(kCLOCK_DivTraceClk, 2U);
     CLOCK_AttachClk(kTRACE_DIV_to_TRACE);
 
-    BOARD_InitPins();
+    /* attach FRO 12M to FLEXCOMM2 */
+    CLOCK_SetClkDiv(kCLOCK_DivFlexcom2Clk, 1u);
+    CLOCK_AttachClk(kFRO12M_to_FLEXCOMM2);
+
+    BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
 }

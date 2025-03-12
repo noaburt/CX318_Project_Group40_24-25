@@ -11,6 +11,8 @@
 #include "board.h"
 #include "app.h"
 
+#include "shield_oled.h"
+
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
@@ -36,11 +38,18 @@ int main(void)
     /* Init board hardware. */
     BOARD_InitHardware();
 
+    SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq( kCLOCK_CoreSysClk ));
+
+    /* Begin oled */
+    initOLED();
+    printfOLED("Hello World.");
+
     PRINTF("hello world.\r\n");
 
     while (1)
     {
         ch = GETCHAR();
         PUTCHAR(ch);
+        writeChar(ch, false);
     }
 }
