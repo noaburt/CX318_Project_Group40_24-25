@@ -700,7 +700,7 @@ status_t LPI2C_MasterStart(LPI2C_Type *base, uint8_t address, lpi2c_direction_t 
         if (kStatus_Success == result)
         {
             /* Issue start command. */
-            base->MTDR = (uint32_t)kStartCmd | ((uint32_t)address << 1U); // | (uint32_t)dir); DIR ALREADY INCLUDED IN ADDRESS
+            base->MTDR = (uint32_t)kStartCmd | ((uint32_t)address << 1U); // | (uint32_t)dir);
         }
     }
 

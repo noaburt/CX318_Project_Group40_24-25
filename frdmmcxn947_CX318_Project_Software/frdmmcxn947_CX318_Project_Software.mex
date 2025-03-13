@@ -105,6 +105,7 @@
                   <pin peripheral="GPIO5" signal="GPIO, 8" pin_num="L14" pin_signal="PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16">
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
+                        <pin_feature name="pull_select" value="up"/>
                      </pin_features>
                   </pin>
                </pins>

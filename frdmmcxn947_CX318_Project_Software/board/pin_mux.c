@@ -49,7 +49,7 @@ BOARD_InitPins:
     slew_rate: fast, open_drain: disable, drive_strength: low, pull_select: down, pull_enable: disable, passive_filter: disable, input_buffer: enable, invert_input: normal}
   - {pin_num: B16, peripheral: SWD, signal: SWO, pin_signal: PIO0_2/TDO/SWO/FC1_P2/CT0_MAT0/UTICK_CAP0/I3C0_PUR, slew_rate: fast, open_drain: disable, drive_strength: high,
     pull_select: down, pull_enable: disable, input_buffer: enable, invert_input: normal}
-  - {pin_num: L14, peripheral: GPIO5, signal: 'GPIO, 8', pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, direction: INPUT}
+  - {pin_num: L14, peripheral: GPIO5, signal: 'GPIO, 8', pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, direction: INPUT, pull_select: up}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -145,7 +145,10 @@ void BOARD_InitPins(void)
 
     PORT5->PCR[8] = ((PORT5->PCR[8] &
                       /* Mask bits to zero which are setting */
-                      (~(PORT_PCR_MUX_MASK | PORT_PCR_IBE_MASK)))
+                      (~(PORT_PCR_PS_MASK | PORT_PCR_MUX_MASK | PORT_PCR_IBE_MASK)))
+
+                     /* Pull Select: Enables internal pullup resistor. */
+                     | PORT_PCR_PS(PCR_PS_ps1)
 
                      /* Pin Multiplex Control: PORT5_8 (pin L14) is configured as PIO5_8. */
                      | PORT_PCR_MUX(PORT5_PCR_MUX_mux00)

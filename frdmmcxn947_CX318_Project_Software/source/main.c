@@ -59,13 +59,15 @@ int main(void)
 	int32_t brightness;
 	float temp;
 
+	initMAX();
+
 	if (resetMAX() != kStatus_Success) { return 1; } // reset the MAX30102
 
-	/* read & clear status register */
+	/* read & clear INT status register */
 	if (readFromMAX(0, &dummy) != kStatus_Success) { return 1; }
 
 	/* initialise the MAX30102 */
-	if (initMAX() != kStatus_Success) { return 1; }
+	if (startMAX() != kStatus_Success) { return 1; }
 
 	/* Prepare for reading data */
 	brightness = 0;
@@ -78,7 +80,7 @@ int main(void)
 	/* Read the first 500 samples and determine signal range */
 	for (i = 0; i < ir_buffer_len; i++) {
 
-		while (GPIO_PinRead(MAX_INT_GPIO, MAX_INT_GPIO_PIN) == 1) {}
+		while (GPIO_PinRead(MAX_INT_GPIO, MAX_INT_GPIO_PIN) == 1);
 
 		readFifoMAX((red_buffer+i), (ir_led_buffer+i));  //read from MAX30102 FIFO
 
