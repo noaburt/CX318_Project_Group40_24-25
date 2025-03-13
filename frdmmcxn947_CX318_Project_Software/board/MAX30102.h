@@ -40,7 +40,7 @@
 
 int initMAX();
 int startMAX();
-int readFifoMAX(uint32_t *pun_red_led, uint32_t *pun_ir_led);
-int sendToMAX(uint8_t uch_addr, uint8_t uch_data);
-int readFromMAX(uint8_t uch_addr, uint8_t *puch_data);
+int readFifoMAX(uint32_t *read_led_ptr, uint32_t *read_ir_ptr);
+int sendToMAX(uint8_t reg_addr, uint8_t* reg_data_ptr);
+int readFromMAX(uint8_t read_addr, uint8_t* read_data);
 int resetMAX();

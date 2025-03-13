@@ -8,7 +8,7 @@
 #include "pin_mux.h"
 #include "fsl_lpi2c.h"
 
-int sendToMAX(uint8_t reg_addr, uint8_t reg_data)
+int sendToMAX(uint8_t reg_addr, uint8_t* reg_data_ptr)
 /**
 * \brief        Write a value to a MAX30102 register
 * \par          Details
@@ -22,15 +22,14 @@ int sendToMAX(uint8_t reg_addr, uint8_t reg_data)
 {
 	LPI2C_MasterStart(I2C_MAX, MAX_WRITE_ADDR, kLPI2C_Write);
 
-	char i2c_data[2] = {reg_addr, reg_data};
-
-	int result = LPI2C_MasterSend(I2C_MAX, i2c_data, 2);
+	int result = LPI2C_MasterSend(I2C_MAX, &reg_addr, 1);
+	result |= LPI2C_MasterSend(I2C_MAX, reg_data_ptr, 1);
 	LPI2C_MasterStop(I2C_MAX);
 
 	return result;
 }
 
-int readFromMAX(uint8_t read_addr, uint8_t *read_data)
+int readFromMAX(uint8_t read_addr, uint8_t* read_data)
 /**
 * \brief        Read a MAX30102 register
 * \par          Details
@@ -42,31 +41,18 @@ int readFromMAX(uint8_t read_addr, uint8_t *read_data)
 * \retval       kStatus type
 */
 {
-	//if (LPI2C_MasterRepeatedStart(LPI2C0, I2C_WRITE_ADDR, kLPI2C_Write) != kStatus_Success) {
-	//	return kStatus_Fail;
-	//}
+	int result = kStatus_Success;
 
 	LPI2C_MasterStart(I2C_MAX, MAX_WRITE_ADDR, kLPI2C_Write);
+	LPI2C_MasterSend(I2C_MAX, &read_addr, 1);
 
-	char ch_i2c_data = read_addr;
+	LPI2C_MasterRepeatedStart(I2C_MAX, MAX_READ_ADDR, kLPI2C_Read);
+	char ch_read_data;
 
-	if (LPI2C_MasterSend(I2C_MAX, &ch_i2c_data, 1) != kStatus_Success) {
-	    return kStatus_Fail;
-	}
-
-	//if (LPI2C_MasterStart(LPI2C0, I2C_READ_ADDR, kLPI2C_Read) != kStatus_Success) {
-	//	return kStatus_Fail;
-	//}
-
-	int result = kStatus_Fail;
-
-	LPI2C_MasterStart(I2C_MAX, MAX_READ_ADDR, kLPI2C_Read);
-
-	if (LPI2C_MasterReceive(I2C_MAX, &ch_i2c_data, 1) == kStatus_Success) {
-		*read_data = (uint8_t) ch_i2c_data;
+	if (LPI2C_MasterReceive(I2C_MAX, &ch_read_data, 1) == kStatus_Success) {
+		*read_data = (uint8_t) ch_read_data;
 		result = kStatus_Success;
 	}
-
 	LPI2C_MasterStop(I2C_MAX);
 
 	return result;
@@ -101,48 +87,48 @@ int startMAX()
 * \retval       true on success
 */
 {
-  if(sendToMAX(REG_INTR_ENABLE_1, 0xc0) != kStatus_Success) {// INTR setting
+  if(sendToMAX(REG_INTR_ENABLE_1, (uint8_t*) 0xc0) != kStatus_Success) {// INTR setting
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_INTR_ENABLE_2, 0x00) != kStatus_Success) {
+  if(sendToMAX(REG_INTR_ENABLE_2, (uint8_t*) 0x00) != kStatus_Success) {
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_FIFO_WR_PTR, 0x00) != kStatus_Success) { //FIFO_WR_PTR[4:0]
+  if(sendToMAX(REG_FIFO_WR_PTR, (uint8_t*) 0x00) != kStatus_Success) { //FIFO_WR_PTR[4:0]
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_OVF_COUNTER, 0x00) != kStatus_Success) { //OVF_COUNTER[4:0]
+  if(sendToMAX(REG_OVF_COUNTER, (uint8_t*) 0x00) != kStatus_Success) { //OVF_COUNTER[4:0]
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_FIFO_RD_PTR, 0x00) != kStatus_Success) { //FIFO_RD_PTR[4:0]
+  if(sendToMAX(REG_FIFO_RD_PTR, (uint8_t*) 0x00) != kStatus_Success) { //FIFO_RD_PTR[4:0]
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_FIFO_CONFIG, 0x0f) != kStatus_Success) { //sample avg = 1, fifo rollover=false, fifo almost full = 17
+  if(sendToMAX(REG_FIFO_CONFIG, (uint8_t*) 0x0f) != kStatus_Success) { //sample avg = 1, fifo rollover=false, fifo almost full = 17
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_MODE_CONFIG, 0x03) != kStatus_Success) {  //0x02 for Red only, 0x03 for SpO2 mode 0x07 multimode LED
+  if(sendToMAX(REG_MODE_CONFIG, (uint8_t*) 0x03) != kStatus_Success) {  //0x02 for Red only, 0x03 for SpO2 mode 0x07 multimode LED
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_SPO2_CONFIG, 0x27) != kStatus_Success) { // SPO2_ADC range = 4096nA, SPO2 sample rate (100 Hz), LED pulseWidth (400uS)
+  if(sendToMAX(REG_SPO2_CONFIG, (uint8_t*) 0x27) != kStatus_Success) { // SPO2_ADC range = 4096nA, SPO2 sample rate (100 Hz), LED pulseWidth (400uS)
     return kStatus_Fail;
   }
 
 
-  if(sendToMAX(REG_LED1_PA, 0x24) != kStatus_Success) {  //Choose value for ~ 7mA for LED1
+  if(sendToMAX(REG_LED1_PA, (uint8_t*) 0x24) != kStatus_Success) {  //Choose value for ~ 7mA for LED1
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_LED2_PA, 0x24) != kStatus_Success) {  // Choose value for ~ 7mA for LED2
+  if(sendToMAX(REG_LED2_PA, (uint8_t*) 0x24) != kStatus_Success) {  // Choose value for ~ 7mA for LED2
     return kStatus_Fail;
   }
 
-  if(sendToMAX(REG_PILOT_PA, 0x7f) != kStatus_Success) {  // Choose value for ~ 25mA for Pilot LED
+  if(sendToMAX(REG_PILOT_PA, (uint8_t*) 0x7f) != kStatus_Success) {  // Choose value for ~ 25mA for Pilot LED
     return kStatus_Fail;
   }
 
@@ -174,17 +160,13 @@ int readFifoMAX(uint32_t *read_led_ptr, uint32_t *read_ir_ptr)
   readFromMAX(REG_INTR_STATUS_2, &read_temp);
 
   i2c_data[0] = REG_FIFO_DATA;
-
   int result = kStatus_Success;
 
   LPI2C_MasterStart(I2C_MAX, MAX_WRITE_ADDR, kLPI2C_Write);
-  result = LPI2C_MasterSend(I2C_MAX, i2c_data, 1);
-  LPI2C_MasterStop(I2C_MAX);
+  LPI2C_MasterSend(I2C_MAX, &i2c_data, 1);
 
-  if (result != kStatus_Success) { return result; }
-
-  LPI2C_MasterStart(I2C_MAX, MAX_READ_ADDR, kLPI2C_Read);
-  result = LPI2C_MasterReceive(I2C_MAX, i2c_data, 6);
+  LPI2C_MasterRepeatedStart(I2C_MAX, MAX_READ_ADDR, kLPI2C_Read);
+  result = LPI2C_MasterReceive(I2C_MAX, &i2c_data, 6);
   LPI2C_MasterStop(I2C_MAX);
 
   if (result != kStatus_Success) { return result; }
@@ -225,5 +207,5 @@ int resetMAX()
 */
 {
 
-    return sendToMAX(REG_MODE_CONFIG, 0x40);
+    return sendToMAX(REG_MODE_CONFIG, (uint8_t*) 0x40);
 }
