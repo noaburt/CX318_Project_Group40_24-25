@@ -99,7 +99,7 @@ instance:
       - clockSource: 'FunctionClock'
       - clockSourceFreq: 'ClocksTool_DefaultInit'
       - timerPrescaler: '1'
-    - EnableTimerInInit: 'true'
+    - EnableTimerInInit: 'false'
     - matchChannels:
       - 0:
         - matchChannelPrefixId: 'Match_0'
@@ -138,8 +138,6 @@ static void CTIMER0_init(void) {
   CTIMER_Init(CTIMER0_PERIPHERAL, &CTIMER0_config);
   /* Match channel 0 of CTIMER0 peripheral initialization */
   CTIMER_SetupMatch(CTIMER0_PERIPHERAL, CTIMER0_MATCH_0_CHANNEL, &CTIMER0_Match_0_config);
-  /* Start the timer */
-  CTIMER_StartTimer(CTIMER0_PERIPHERAL);
 }
 
 /***********************************************************************************************************************

@@ -10,6 +10,8 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 #include "board.h"
+#include "peripherals.h"
+#include "fsl_ctimer.h"
 #include "app.h"
 #include "pin_mux.h"
 
@@ -25,6 +27,11 @@
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
+void ctimer_match0_callback(uint32_t flags);
+
+/* Array of function pointers for callback for each channel */
+ctimer_callback_t ctimer_callback_table[] = {
+    ctimer_match0_callback, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
 /*******************************************************************************
  * Variables
@@ -38,17 +45,50 @@ int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
+static int timer_int_flag;
+static ctimer_config_t config;
+static ctimer_match_config_t matchConfig;
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
+void ctimer_match0_callback(uint32_t flags) {
+	timer_int_flag = 1;
+}
 /*!
  * @brief Main function
  */
 
 int main(void)
 {
+	timer_int_flag = 0;
+
 	BOARD_InitHardware();
 
+	/* Init ctimer */
+	CLOCK_SetClkDiv(kCLOCK_DivCtimer0Clk, 1U);
+	CLOCK_AttachClk(kFRO_HF_to_CTIMER0);
+
+	CTIMER_GetDefaultConfig(&config);
+	CTIMER_Init(CTIMER0_PERIPHERAL, &config);
+
+	matchConfig.enableCounterReset = true;
+	matchConfig.enableCounterStop = false;
+	matchConfig.matchValue = CTIMER0_TICK_FREQ / 2;
+	matchConfig.outControl = kCTIMER_Output_Toggle;
+	matchConfig.outPinInitState = true;
+	matchConfig.enableInterrupt = true;
+
+	CTIMER_SetupMatch(CTIMER0_PERIPHERAL, CTIMER0_MATCH_0_CHANNEL, &matchConfig);
+	CTIMER_RegisterCallBack(CTIMER0_PERIPHERAL, &ctimer_callback_table[0], kCTIMER_MultipleCallback);
+	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
+
+	while (1) {
+		if (timer_int_flag == 1) {
+			PRINTF("TIME PASSED\r\n");
+		}
+	}
 
 }
 
