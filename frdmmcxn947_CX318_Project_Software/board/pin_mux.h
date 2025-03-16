@@ -84,6 +84,31 @@ void BOARD_InitPins(void);
  */
 void I2C_Pins(void);
 
+#define ICR_IRQS_irqs1 0x01u /*!<@brief Interrupt Select: Interrupt, trigger output, or DMA request 1 */
+#define PCR_IBE_ibe1 0x01u   /*!<@brief Input Buffer Enable: Enables */
+#define PCR_PE_pe1 0x01u     /*!<@brief Pull Enable: Enables */
+#define PCR_PS_ps1 0x01u     /*!<@brief Pull Select: Enables internal pullup resistor */
+
+/*! @name PORT1_22 (coord L4), P1_22/J9[24]/J3[3]/SJ9[3]
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_TIMERPINS_RESET_TIMER_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
+#define BOARD_TIMERPINS_RESET_TIMER_GPIO_PIN 22U              /*!<@brief GPIO pin number */
+#define BOARD_TIMERPINS_RESET_TIMER_GPIO_PIN_MASK (1U << 22U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define BOARD_TIMERPINS_RESET_TIMER_PORT PORT1                /*!<@brief PORT peripheral base pointer */
+#define BOARD_TIMERPINS_RESET_TIMER_PIN 22U                   /*!<@brief PORT pin number */
+#define BOARD_TIMERPINS_RESET_TIMER_PIN_MASK (1U << 22U)      /*!<@brief PORT pin mask */
+                                                              /* @} */
+
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
+void BOARD_TimerPins(void);
+
 #if defined(__cplusplus)
 }
 #endif

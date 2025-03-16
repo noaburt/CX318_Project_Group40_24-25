@@ -14,6 +14,7 @@ mcu_data: ksdk2_0
 processor_version: 24.12.10
 board: FRDM-MCXN947
 pin_labels:
+- {pin_num: L4, pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, label: 'P1_22/J9[24]/J3[3]/SJ9[3]', identifier: RESET_TIMER}
 - {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: 'P5_8/U9[19]/J9[31]', identifier: MAX_INT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
@@ -34,6 +35,7 @@ void BOARD_InitBootPins(void)
 {
     BOARD_InitPins();
     I2C_Pins();
+    BOARD_TimerPins();
 }
 
 /* clang-format off */
@@ -199,6 +201,62 @@ void I2C_Pins(void)
 
                      /* Input Buffer Enable: Enables. */
                      | PORT_PCR_IBE(PCR_IBE_ibe1));
+}
+
+/* clang-format off */
+/*
+ * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+BOARD_TimerPins:
+- options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
+- pin_list:
+  - {pin_num: L4, peripheral: GPIO1, signal: 'GPIO, 22', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, direction: INPUT,
+    gpio_per_interrupt_sel: output1, pull_select: up, pull_enable: enable}
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
+ */
+/* clang-format on */
+
+/* FUNCTION ************************************************************************************************************
+ *
+ * Function Name : BOARD_TimerPins
+ * Description   : Configures pin routing and optionally pin electrical features.
+ *
+ * END ****************************************************************************************************************/
+void BOARD_TimerPins(void)
+{
+    /* Enables the clock for GPIO1: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Gpio1);
+    /* Enables the clock for PORT1: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Port1);
+
+    gpio_pin_config_t RESET_TIMER_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO1_22 (pin L4)  */
+    GPIO_PinInit(BOARD_TIMERPINS_RESET_TIMER_GPIO, BOARD_TIMERPINS_RESET_TIMER_PIN, &RESET_TIMER_config);
+
+    GPIO1->ICR[22] = ((GPIO1->ICR[22] &
+                       /* Mask bits to zero which are setting */
+                       (~(GPIO_ICR_IRQS_MASK | GPIO_ICR_ISF_MASK)))
+
+                      /* Interrupt Select: Interrupt, trigger output, or DMA request 1. */
+                      | GPIO_ICR_IRQS(ICR_IRQS_irqs1));
+
+    /* PORT1_22 (pin L4) is configured as PIO1_22 */
+    PORT_SetPinMux(BOARD_TIMERPINS_RESET_TIMER_PORT, BOARD_TIMERPINS_RESET_TIMER_PIN, kPORT_MuxAlt0);
+
+    PORT1->PCR[22] = ((PORT1->PCR[22] &
+                       /* Mask bits to zero which are setting */
+                       (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_IBE_MASK)))
+
+                      /* Pull Select: Enables internal pullup resistor. */
+                      | PORT_PCR_PS(PCR_PS_ps1)
+
+                      /* Pull Enable: Enables. */
+                      | PORT_PCR_PE(PCR_PE_pe1)
+
+                      /* Input Buffer Enable: Enables. */
+                      | PORT_PCR_IBE(PCR_IBE_ibe1));
 }
 /***********************************************************************************************************************
  * EOF

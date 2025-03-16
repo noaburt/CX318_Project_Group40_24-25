@@ -421,7 +421,7 @@ void BOARD_BootClockFROHF144M(void);
 #define BOARD_BOOTCLOCKPLL150M_CMP1RRDIV_CLOCK        0UL            /* Clock consumers of CMP1RRDIV_clock output : CMP1 */
 #define BOARD_BOOTCLOCKPLL150M_CMP2FDIV_CLOCK         0UL            /* Clock consumers of CMP2FDIV_clock output : CMP2 */
 #define BOARD_BOOTCLOCKPLL150M_CMP2RRDIV_CLOCK        0UL            /* Clock consumers of CMP2RRDIV_clock output : CMP2 */
-#define BOARD_BOOTCLOCKPLL150M_CTIMER0_CLOCK          0UL            /* Clock consumers of CTIMER0_clock output : CTIMER0 */
+#define BOARD_BOOTCLOCKPLL150M_CTIMER0_CLOCK          150000000UL    /* Clock consumers of CTIMER0_clock output : CTIMER0 */
 #define BOARD_BOOTCLOCKPLL150M_CTIMER1_CLOCK          0UL            /* Clock consumers of CTIMER1_clock output : CTIMER1 */
 #define BOARD_BOOTCLOCKPLL150M_CTIMER2_CLOCK          0UL            /* Clock consumers of CTIMER2_clock output : CTIMER2 */
 #define BOARD_BOOTCLOCKPLL150M_CTIMER3_CLOCK          0UL            /* Clock consumers of CTIMER3_clock output : CTIMER3 */
@@ -440,7 +440,7 @@ void BOARD_BootClockFROHF144M(void);
 #define BOARD_BOOTCLOCKPLL150M_FLEXCOMM1_CLOCK        0UL            /* Clock consumers of FLEXCOMM1_clock output : LPI2C1, LPSPI1, LPUART1, LP_FLEXCOMM1 */
 #define BOARD_BOOTCLOCKPLL150M_FLEXCOMM2_CLOCK        0UL            /* Clock consumers of FLEXCOMM2_clock output : LPI2C2, LPSPI2, LPUART2, LP_FLEXCOMM2 */
 #define BOARD_BOOTCLOCKPLL150M_FLEXCOMM3_CLOCK        0UL            /* Clock consumers of FLEXCOMM3_clock output : LPI2C3, LPSPI3, LPUART3, LP_FLEXCOMM3 */
-#define BOARD_BOOTCLOCKPLL150M_FLEXCOMM4_CLOCK        0UL            /* Clock consumers of FLEXCOMM4_clock output : LPI2C4, LPSPI4, LPUART4, LP_FLEXCOMM4 */
+#define BOARD_BOOTCLOCKPLL150M_FLEXCOMM4_CLOCK        12000000UL     /* Clock consumers of FLEXCOMM4_clock output : LPI2C4, LPSPI4, LPUART4, LP_FLEXCOMM4 */
 #define BOARD_BOOTCLOCKPLL150M_FLEXCOMM5_CLOCK        0UL            /* Clock consumers of FLEXCOMM5_clock output : LPI2C5, LPSPI5, LPUART5, LP_FLEXCOMM5 */
 #define BOARD_BOOTCLOCKPLL150M_FLEXCOMM6_CLOCK        0UL            /* Clock consumers of FLEXCOMM6_clock output : LPI2C6, LPSPI6, LPUART6, LP_FLEXCOMM6 */
 #define BOARD_BOOTCLOCKPLL150M_FLEXCOMM7_CLOCK        0UL            /* Clock consumers of FLEXCOMM7_clock output : LPI2C7, LPSPI7, LPUART7, LP_FLEXCOMM7 */

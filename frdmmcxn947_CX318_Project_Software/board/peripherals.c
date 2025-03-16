@@ -69,7 +69,8 @@ instance:
 - peripheral: 'NVIC'
 - config_sets:
   - nvic:
-    - interrupt_table: []
+    - interrupt_table:
+      - 0: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -79,11 +80,141 @@ static void NVIC_init(void) {
 } */
 
 /***********************************************************************************************************************
+ * CTIMER0 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'CTIMER0'
+- type: 'ctimer'
+- mode: 'Capture_Match'
+- custom_name_enabled: 'false'
+- type_id: 'ctimer_2.2.2'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'CTIMER0'
+- config_sets:
+  - fsl_ctimer:
+    - ctimerConfig:
+      - mode: 'kCTIMER_TimerMode'
+      - clockSource: 'FunctionClock'
+      - clockSourceFreq: 'ClocksTool_DefaultInit'
+      - timerPrescaler: '1'
+    - EnableTimerInInit: 'true'
+    - matchChannels:
+      - 0:
+        - matchChannelPrefixId: 'Match_0'
+        - matchChannel: 'kCTIMER_Match_0'
+        - matchValueStr: '1'
+        - enableCounterReset: 'false'
+        - enableCounterStop: 'false'
+        - outControl: 'kCTIMER_Output_Toggle'
+        - outPinInitValue: 'low'
+        - enableInterrupt: 'true'
+    - captureChannels: []
+    - interruptCallbackConfig:
+      - interrupt:
+        - IRQn: 'CTIMER0_IRQn'
+        - enable_priority: 'false'
+        - priority: '0'
+      - callback: 'kCTIMER_NoCallback'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+const ctimer_config_t CTIMER0_config = {
+  .mode = kCTIMER_TimerMode,
+  .input = kCTIMER_Capture_0,
+  .prescale = 0
+};
+const ctimer_match_config_t CTIMER0_Match_0_config = {
+  .matchValue = 0,
+  .enableCounterReset = false,
+  .enableCounterStop = false,
+  .outControl = kCTIMER_Output_Toggle,
+  .outPinInitState = false,
+  .enableInterrupt = true
+};
+
+static void CTIMER0_init(void) {
+  /* CTIMER0 peripheral initialization */
+  CTIMER_Init(CTIMER0_PERIPHERAL, &CTIMER0_config);
+  /* Match channel 0 of CTIMER0 peripheral initialization */
+  CTIMER_SetupMatch(CTIMER0_PERIPHERAL, CTIMER0_MATCH_0_CHANNEL, &CTIMER0_Match_0_config);
+  /* Start the timer */
+  CTIMER_StartTimer(CTIMER0_PERIPHERAL);
+}
+
+/***********************************************************************************************************************
+ * LP_FLEXCOMM4 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'LP_FLEXCOMM4'
+- type: 'lpflexcomm_lpi2c'
+- mode: 'polling'
+- custom_name_enabled: 'false'
+- type_id: 'lpflexcomm_lpi2c_2.1.1'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'LP_FLEXCOMM4'
+- config_sets:
+  - generalCfg:
+    - lpi2c_mode: 'master'
+    - clock_configuration:
+      - clockSource: 'LPFLEXCOMMFunctionClock'
+      - clockSourceFreq: 'ClocksTool_DefaultInit'
+    - master_config:
+      - enableMaster: 'true'
+      - enableDoze: 'true'
+      - debugEnable: 'false'
+      - ignoreAck: 'false'
+      - pinConfig: 'kLPI2C_2PinOpenDrain'
+      - baudRate_Hz: '100000'
+      - realBaudRateCount: []
+      - busIdleTimeout_ns: '0'
+      - pinLowTimeout_ns: '0'
+      - sdaGlitchFilterWidth_ns: '0'
+      - sclGlitchFilterWidth_ns: '0'
+      - hostRequest:
+        - enable: 'false'
+        - source: 'kLPI2C_HostRequestExternalPin'
+        - polarity: 'kLPI2C_HostRequestPinActiveHigh'
+      - enable_dma_master: 'false'
+      - lpi2c_dma_master_struct_t:
+        - DMATxEnable: 'true'
+        - DMARxEnable: 'true'
+    - quick_selection: 'qs_default'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+const lpi2c_master_config_t LP_FLEXCOMM4_masterConfig = {
+  .enableMaster = true,
+  .enableDoze = true,
+  .debugEnable = false,
+  .ignoreAck = false,
+  .pinConfig = kLPI2C_2PinOpenDrain,
+  .baudRate_Hz = 100000UL,
+  .busIdleTimeout_ns = 0UL,
+  .pinLowTimeout_ns = 0UL,
+  .sdaGlitchFilterWidth_ns = 0U,
+  .sclGlitchFilterWidth_ns = 0U,
+  .hostRequest = {
+    .enable = false,
+    .source = kLPI2C_HostRequestExternalPin,
+    .polarity = kLPI2C_HostRequestPinActiveHigh
+  }
+};
+
+static void LP_FLEXCOMM4_init(void) {
+  /* LP_FLEXCOMM4 LPI2C leader initialization */
+  LPI2C_MasterInit(LP_FLEXCOMM4_PERIPHERAL, &LP_FLEXCOMM4_masterConfig, LP_FLEXCOMM4_CLOCK_SOURCE);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
 {
   /* Initialize components */
+  CTIMER0_init();
+  LP_FLEXCOMM4_init();
 }
 
 /***********************************************************************************************************************

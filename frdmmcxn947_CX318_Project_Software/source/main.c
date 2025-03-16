@@ -44,7 +44,15 @@ uint8_t dummy;					// General 'dummy' variable
 /*!
  * @brief Main function
  */
+
 int main(void)
+{
+	BOARD_InitHardware();
+
+
+}
+
+int MAXmain(void)
 {
     char ch;
 

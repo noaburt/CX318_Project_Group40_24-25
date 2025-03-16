@@ -10,10 +10,44 @@
  * Included files
  **********************************************************************************************************************/
 #include "fsl_common.h"
+#include "fsl_ctimer.h"
+#include "fsl_clock.h"
+#include "fsl_lpi2c.h"
 
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
+
+/***********************************************************************************************************************
+ * Definitions
+ **********************************************************************************************************************/
+/* Definitions for BOARD_InitPeripherals functional group */
+/* Definition of peripheral ID */
+#define CTIMER0_PERIPHERAL CTIMER0
+/* Timer tick frequency in Hz (input frequency of the timer) */
+#define CTIMER0_TICK_FREQ 150000000UL
+/* Timer tick period in ns (input period of the timer) */
+#define CTIMER0_TICK_PERIOD 7UL
+/* Definition of PWM period channel. */
+#define CTIMER0_PWM_PERIOD_CH kCTIMER_Match_0
+/* Definition of channel 0 ID */
+#define CTIMER0_MATCH_0_CHANNEL kCTIMER_Match_0
+/* CTIMER0 interrupt vector ID (number). */
+#define CTIMER0_TIMER_IRQN CTIMER0_IRQn
+/* BOARD_InitPeripherals defines for LP_FLEXCOMM4 */
+/* Definition of peripheral ID */
+#define LP_FLEXCOMM4_PERIPHERAL LPI2C4
+/* Definition of peripheral base address */
+#define LP_FLEXCOMM4_PERIPHERAL_BASE LPI2C4_BASE
+/* Definition of the clock source frequency */
+#define LP_FLEXCOMM4_CLOCK_SOURCE 12000000UL
+
+/***********************************************************************************************************************
+ * Global variables
+ **********************************************************************************************************************/
+extern const ctimer_config_t CTIMER0_config;
+extern const ctimer_match_config_t CTIMER0_Match_0_config;
+extern const lpi2c_master_config_t LP_FLEXCOMM4_masterConfig;
 
 /***********************************************************************************************************************
  * Initialization functions
