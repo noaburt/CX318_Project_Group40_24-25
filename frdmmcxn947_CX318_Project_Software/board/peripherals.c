@@ -75,6 +75,7 @@ instance:
     - interrupt_table:
       - 0: []
       - 1: []
+      - 2: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -230,6 +231,7 @@ instance:
     - interrupt_table:
       - 0: []
       - 1: []
+      - 2: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -262,7 +264,7 @@ instance:
       - enable_custom_name: 'false'
     - enable_irq_1: 'false'
     - gpio_interrupt_1:
-      - IRQn: 'GPIO01_IRQn'
+      - IRQn: 'GPIO11_IRQn'
       - enable_interrrupt: 'enabled'
       - enable_priority: 'false'
       - priority: '1'
@@ -284,6 +286,51 @@ static void GPIO0_init(void) {
 }
 
 /***********************************************************************************************************************
+ * GPIO4 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'GPIO4'
+- type: 'gpio'
+- mode: 'GPIO'
+- custom_name_enabled: 'false'
+- type_id: 'gpio_2.7.0'
+- functional_group: 'BOARD_InitGPIOInt'
+- peripheral: 'GPIO4'
+- config_sets:
+  - fsl_gpio:
+    - enable_irq: 'true'
+    - port_interrupt:
+      - IRQn: 'GPIO40_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '0'
+      - enable_custom_name: 'false'
+    - enable_irq_1: 'false'
+    - gpio_interrupt_1:
+      - IRQn: 'GPIO01_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '1'
+      - enable_custom_name: 'false'
+    - enable_irq_EFT: 'false'
+    - port_interrupt_EFT:
+      - IRQn: 'noInt'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '2'
+      - enable_custom_name: 'false'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+
+static void GPIO4_init(void) {
+  /* Make sure, the clock gate for port 4 is enabled (e. g. in pin_mux.c) */
+  /* Enable interrupt GPIO4_INT_0_IRQN request in the NVIC */
+  EnableIRQ(GPIO4_INT_0_IRQN);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
@@ -297,6 +344,7 @@ void BOARD_InitGPIOInt(void)
 {
   /* Initialize components */
   GPIO0_init();
+  GPIO4_init();
 }
 
 /***********************************************************************************************************************

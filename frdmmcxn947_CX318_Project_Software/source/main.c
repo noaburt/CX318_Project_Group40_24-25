@@ -23,6 +23,7 @@
  * Definitions
  ******************************************************************************/
 #define MAX_BRIGHTNESS 255
+#define BUZZ_MARGIN 2 // BAD DONT USE THIS NUMBER, ONLY TEST
 
 /*******************************************************************************
  * Prototypes
@@ -46,7 +47,9 @@ int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
 static int timer_int_flag;
-static int gpio_int_flag;
+static int timer_counter;
+static int prev_buzz_time;
+static int buzz_counter;
 static ctimer_config_t config;
 static ctimer_match_config_t matchConfig;
 
@@ -59,12 +62,14 @@ void ctimer_match0_callback(uint32_t flags) {
 }
 
 
-/* GPIO10_IRQn interrupt handler */
+/* GPIO10_IRQn interrupt handler - RESET_TIMER */
 void GPIO0_INT_0_IRQHANDLER(void) {
   /* Get pin flags 0 */
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
 
-  gpio_int_flag = 1;
+  timer_counter = 0;
+  buzz_counter = 0;
+  PRINTF("TIMER RESET\r\n");
 
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO1, pin_flags0, 0U);
@@ -76,6 +81,29 @@ void GPIO0_INT_0_IRQHANDLER(void) {
   #endif
 }
 
+/* GPIO40_IRQn interrupt handler - BUZZ */
+void GPIO4_INT_0_IRQHANDLER(void) {
+  /* Get pin flags 0 */
+  uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO4, 0U);
+
+  /* Allow time for margin of error i.e. bad connection */
+  if (timer_counter - prev_buzz_time > BUZZ_MARGIN) {
+	  prev_buzz_time = timer_counter;
+	  buzz_counter++;
+	  PRINTF("BUZZ\r\n");
+  }
+
+  /* Clear pin flags 0 */
+  GPIO_GpioClearInterruptChannelFlags(GPIO4, pin_flags0, 0U);
+
+  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+     Store immediate overlapping exception return operation might vector to incorrect interrupt. */
+  #if defined __CORTEX_M && (__CORTEX_M == 4U)
+    __DSB();
+  #endif
+}
+
+
 
 
 /*!
@@ -84,9 +112,9 @@ void GPIO0_INT_0_IRQHANDLER(void) {
 
 int main(void)
 {
-	int timer_counter = 0;
+	timer_counter = 0;
 	timer_int_flag = 0;
-	gpio_int_flag = 0;
+	buzz_counter = 0;
 
 	BOARD_InitHardware();
 	BOARD_InitGPIOInt();
@@ -100,7 +128,7 @@ int main(void)
 
 	matchConfig.enableCounterReset = true;
 	matchConfig.enableCounterStop = false;
-	matchConfig.matchValue = CTIMER0_TICK_FREQ / 2;
+	matchConfig.matchValue = CTIMER0_TICK_FREQ / 4;
 	matchConfig.outControl = kCTIMER_Output_Toggle;
 	matchConfig.outPinInitState = true;
 	matchConfig.enableInterrupt = true;
@@ -110,16 +138,12 @@ int main(void)
 	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
 
 	while (1) {
-		if (gpio_int_flag == 1) {
-			timer_counter = 0;
-			gpio_int_flag = 0;
 
-			PRINTF("TIMER RESET\r\n");
-		}
 		if (timer_int_flag == 1) {
-			PRINTF("TIME: %d, GPIO: %d\r\n", timer_counter++, GPIO_PinRead(BOARD_TIMERPINS_RESET_TIMER_GPIO, BOARD_TIMERPINS_RESET_TIMER_GPIO_PIN));
+			PRINTF("TIME: %d, BUZZES: %d\r\n", timer_counter++, buzz_counter);
 			timer_int_flag = 0;
 		}
+
 	}
 
 }

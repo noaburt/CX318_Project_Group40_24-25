@@ -14,7 +14,10 @@ mcu_data: ksdk2_0
 processor_version: 24.12.10
 board: FRDM-MCXN947
 pin_labels:
+- {pin_num: D2, pin_signal: PIO1_12/WUU0_IN12/TRACE_CLK/FC4_P4/FC3_P0/CT2_MAT2/SCT0_OUT4/FLEXIO0_D20/SMARTDMA_PIO8/PLU_OUT2/ENET0_RXER/CAN1_RXD/TSI0_CH21/ADC1_A12,
+  label: 'P1_12/J2[11]/J9[28]', identifier: BUZZ}
 - {pin_num: L4, pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, label: 'P1_22/J9[24]/J3[3]/SJ9[3]', identifier: RESET_TIMER}
+- {pin_num: M6, pin_signal: PIO4_4/FC2_P4/CT_INP14/SMARTDMA_PIO28/PLU_IN4/SINC0_MCLK4, label: 'P4_4/J9[26]', identifier: BUZZ}
 - {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: 'P5_8/U9[19]/J9[31]', identifier: MAX_INT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
@@ -211,6 +214,8 @@ BOARD_TimerPins:
 - pin_list:
   - {pin_num: L4, peripheral: GPIO1, signal: 'GPIO, 22', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, direction: INPUT,
     gpio_per_interrupt_sel: output0, gpio_per_interrupt: kGPIO_InterruptEitherEdge, pull_select: up, pull_enable: enable}
+  - {pin_num: M6, peripheral: GPIO4, signal: 'GPIO, 4', pin_signal: PIO4_4/FC2_P4/CT_INP14/SMARTDMA_PIO28/PLU_IN4/SINC0_MCLK4, direction: INPUT, gpio_per_interrupt_sel: output0,
+    gpio_per_interrupt: kGPIO_InterruptFallingEdge, pull_select: up, pull_enable: enable}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -225,8 +230,12 @@ void BOARD_TimerPins(void)
 {
     /* Enables the clock for GPIO1: Enables clock */
     CLOCK_EnableClock(kCLOCK_Gpio1);
+    /* Enables the clock for GPIO4: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Gpio4);
     /* Enables the clock for PORT1: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port1);
+    /* Enables the clock for PORT4: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Port4);
 
     gpio_pin_config_t RESET_TIMER_config = {
         .pinDirection = kGPIO_DigitalInput,
@@ -234,6 +243,13 @@ void BOARD_TimerPins(void)
     };
     /* Initialize GPIO functionality on pin PIO1_22 (pin L4)  */
     GPIO_PinInit(BOARD_TIMERPINS_RESET_TIMER_GPIO, BOARD_TIMERPINS_RESET_TIMER_PIN, &RESET_TIMER_config);
+
+    gpio_pin_config_t BUZZ_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO4_4 (pin M6)  */
+    GPIO_PinInit(BOARD_TIMERPINS_BUZZ_GPIO, BOARD_TIMERPINS_BUZZ_PIN, &BUZZ_config);
 
     GPIO1->ICR[22] = ((GPIO1->ICR[22] &
                        /* Mask bits to zero which are setting */
@@ -244,6 +260,16 @@ void BOARD_TimerPins(void)
 
     /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(BOARD_TIMERPINS_RESET_TIMER_GPIO, BOARD_TIMERPINS_RESET_TIMER_PIN, kGPIO_InterruptEitherEdge);
+
+    GPIO4->ICR[4] = ((GPIO4->ICR[4] &
+                      /* Mask bits to zero which are setting */
+                      (~(GPIO_ICR_IRQS_MASK | GPIO_ICR_ISF_MASK)))
+
+                     /* Interrupt Select: Interrupt, trigger output, or DMA request 0. */
+                     | GPIO_ICR_IRQS(ICR_IRQS_irqs0));
+
+    /* Interrupt configuration on GPIO4_4 (pin M6): Interrupt on falling edge */
+    GPIO_SetPinInterruptConfig(BOARD_TIMERPINS_BUZZ_GPIO, BOARD_TIMERPINS_BUZZ_PIN, kGPIO_InterruptFallingEdge);
 
     /* PORT1_22 (pin L4) is configured as PIO1_22 */
     PORT_SetPinMux(BOARD_TIMERPINS_RESET_TIMER_PORT, BOARD_TIMERPINS_RESET_TIMER_PIN, kPORT_MuxAlt0);
@@ -260,6 +286,22 @@ void BOARD_TimerPins(void)
 
                       /* Input Buffer Enable: Enables. */
                       | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT4_4 (pin M6) is configured as PIO4_4 */
+    PORT_SetPinMux(BOARD_TIMERPINS_BUZZ_PORT, BOARD_TIMERPINS_BUZZ_PIN, kPORT_MuxAlt0);
+
+    PORT4->PCR[4] = ((PORT4->PCR[4] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_IBE_MASK)))
+
+                     /* Pull Select: Enables internal pullup resistor. */
+                     | PORT_PCR_PS(PCR_PS_ps1)
+
+                     /* Pull Enable: Enables. */
+                     | PORT_PCR_PE(PCR_PE_pe1)
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
 }
 /***********************************************************************************************************************
  * EOF

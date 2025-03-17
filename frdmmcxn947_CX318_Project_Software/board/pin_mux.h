@@ -103,6 +103,20 @@ void I2C_Pins(void);
 #define BOARD_TIMERPINS_RESET_TIMER_PIN_MASK (1U << 22U)      /*!<@brief PORT pin mask */
                                                               /* @} */
 
+/*! @name PORT4_4 (coord M6), P4_4/J9[26]
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_TIMERPINS_BUZZ_GPIO GPIO4               /*!<@brief GPIO peripheral base pointer */
+#define BOARD_TIMERPINS_BUZZ_GPIO_PIN 4U              /*!<@brief GPIO pin number */
+#define BOARD_TIMERPINS_BUZZ_GPIO_PIN_MASK (1U << 4U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define BOARD_TIMERPINS_BUZZ_PORT PORT4               /*!<@brief PORT peripheral base pointer */
+#define BOARD_TIMERPINS_BUZZ_PIN 4U                   /*!<@brief PORT pin number */
+#define BOARD_TIMERPINS_BUZZ_PIN_MASK (1U << 4U)      /*!<@brief PORT pin mask */
+                                                      /* @} */
+
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
