@@ -52,6 +52,7 @@ int main(void)
     BOARD_InitHardware();
 
     SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq( kCLOCK_CoreSysClk ));
+    int amount = CLOCK_GetFreq(kCLOCK_Fro12M) / 30;
 
     /* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
