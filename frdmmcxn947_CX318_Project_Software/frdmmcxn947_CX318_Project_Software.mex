@@ -174,7 +174,7 @@
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
                         <pin_feature name="gpio_per_interrupt_sel" value="output0"/>
-                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptLogicZero"/>
+                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptEitherEdge"/>
                         <pin_feature name="pull_select" value="up"/>
                         <pin_feature name="pull_enable" value="enable"/>
                      </pin_features>
