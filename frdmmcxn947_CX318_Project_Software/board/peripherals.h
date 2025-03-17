@@ -13,6 +13,7 @@
 #include "fsl_ctimer.h"
 #include "fsl_clock.h"
 #include "fsl_lpi2c.h"
+#include "fsl_gpio.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -42,6 +43,16 @@ extern "C" {
 /* Definition of the clock source frequency */
 #define LP_FLEXCOMM4_CLOCK_SOURCE 12000000UL
 
+/* Definitions for BOARD_InitGPIOInt functional group */
+/* Alias for GPIO1 peripheral */
+#define GPIO0_GPIO GPIO1
+/* Alias for PORT1 */
+#define GPIO0_PORT PORT1
+/* GPIO0 interrupt vector ID (number). */
+#define GPIO0_INT_0_IRQN GPIO10_IRQn
+/* GPIO0 interrupt handler identifier. */
+#define GPIO0_INT_0_IRQHANDLER GPIO10_IRQHandler
+
 /***********************************************************************************************************************
  * Global variables
  **********************************************************************************************************************/
@@ -54,6 +65,8 @@ extern const lpi2c_master_config_t LP_FLEXCOMM4_masterConfig;
  **********************************************************************************************************************/
 
 void BOARD_InitPeripherals(void);
+
+void BOARD_InitGPIOInt(void);
 
 /***********************************************************************************************************************
  * BOARD_InitBootPeripherals function

@@ -148,6 +148,11 @@
                   <enableClock>true</enableClock>
                </options>
                <dependencies>
+                  <dependency resourceType="Peripheral" resourceId="GPIO1" description="Peripheral GPIO1 signals are routed in the Pins Tool, but the peripheral is not initialized in the Peripherals Tool." problem_level="1" source="Pins:BOARD_TimerPins">
+                     <feature name="initialized" evaluation="equal">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
                   <dependency resourceType="SWComponent" resourceId="platform.drivers.common" description="Pins initialization requires the COMMON Driver in the project." problem_level="2" source="Pins:BOARD_TimerPins">
                      <feature name="enabled" evaluation="equal" configuration="cm33_core0">
                         <data>true</data>
@@ -168,7 +173,8 @@
                   <pin peripheral="GPIO1" signal="GPIO, 22" pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22">
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
-                        <pin_feature name="gpio_per_interrupt_sel" value="output1"/>
+                        <pin_feature name="gpio_per_interrupt_sel" value="output0"/>
+                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptLogicZero"/>
                         <pin_feature name="pull_select" value="up"/>
                         <pin_feature name="pull_enable" value="enable"/>
                      </pin_features>
@@ -506,7 +512,7 @@
          </dcdx_profile>
          <dcdx_configurations/>
       </dcdx>
-      <periphs name="Peripherals" version="15.0" enabled="false" update_project_code="true">
+      <periphs name="Peripherals" version="15.0" enabled="true" update_project_code="true">
          <dependencies>
             <dependency resourceType="SWComponent" resourceId="platform.drivers.ctimer" description="CTimer Driver is not found in the toolchain/IDE project. The project will not compile!" problem_level="2" source="Peripherals">
                <feature name="enabled" evaluation="equal">
@@ -528,13 +534,31 @@
                   <data type="Version" maxValue="2.2.9">2.1.1</data>
                </feature>
             </dependency>
+            <dependency resourceType="SWComponent" resourceId="platform.drivers.gpio" description="GPIO Driver is not found in the toolchain/IDE project. The project will not compile!" problem_level="2" source="Peripherals">
+               <feature name="enabled" evaluation="equal">
+                  <data type="Boolean">true</data>
+               </feature>
+            </dependency>
+            <dependency resourceType="SWComponent" resourceId="platform.drivers.gpio" description="An unsupported version of the GPIO Driver in the toolchain/IDE project. Required: ${required_value}, actual: ${actual_value}. The project might not compile correctly." problem_level="1" source="Peripherals">
+               <feature name="version" evaluation="equivalent">
+                  <data type="Version">2.7.0</data>
+               </feature>
+            </dependency>
+            <dependency resourceType="Tool" resourceId="Pins" description="The Pins tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
+               <feature name="enabled" evaluation="equal">
+                  <data>true</data>
+               </feature>
+            </dependency>
             <dependency resourceType="Tool" resourceId="Clocks" description="The Clocks tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
                <feature name="enabled" evaluation="equal">
                   <data>true</data>
                </feature>
             </dependency>
          </dependencies>
-         <generated_project_files/>
+         <generated_project_files>
+            <file path="board/peripherals.c" update_enabled="true"/>
+            <file path="board/peripherals.h" update_enabled="true"/>
+         </generated_project_files>
          <peripherals_profile>
             <processor_version>24.12.10</processor_version>
          </peripherals_profile>
@@ -574,6 +598,7 @@
                      <config_set name="nvic">
                         <array name="interrupt_table">
                            <struct name="0"/>
+                           <struct name="1"/>
                         </array>
                         <array name="interrupts"/>
                      </config_set>
@@ -639,6 +664,83 @@
                               <setting name="DMATxEnable" value="true"/>
                               <setting name="DMARxEnable" value="true"/>
                            </struct>
+                        </struct>
+                     </config_set>
+                  </instance>
+                  <instance name="GPIO1" uuid="d5cbef0e-23de-4aac-a3df-53b9abeec053" type="gpio_adapter" type_id="gpio_adapter_1.0.1" mode="GPIO" peripheral="GPIO1" enabled="false" comment="" custom_name_enabled="false" editing_lock="false">
+                     <config_set name="fsl_adapter_gpio">
+                        <set name="signalsFilter">
+                           <selected>
+                              <id>default</id>
+                              <id>boot</id>
+                           </selected>
+                        </set>
+                        <array name="gpioSignalsParameters">
+                           <struct name="0"/>
+                        </array>
+                        <array name="gpioPinsOverView">
+                           <struct name="0"/>
+                        </array>
+                        <array name="gpioPinsConfig"/>
+                        <struct name="globalCfg"/>
+                        <array name="differentPeripheralsAdd"/>
+                     </config_set>
+                  </instance>
+                  <instance name="GPIO1_ALIAS1" uuid="f33953de-e0dd-4846-a812-e34a13c7d8aa" type="gpio_adapter" type_id="gpio_adapter_1.0.1" mode="GPIO" peripheral="GPIO1_ALIAS1" enabled="false" comment="" custom_name_enabled="false" editing_lock="false">
+                     <config_set name="fsl_adapter_gpio" quick_selection="QuickSelection1">
+                        <set name="signalsFilter">
+                           <selected>
+                              <id>default</id>
+                              <id>boot</id>
+                           </selected>
+                        </set>
+                        <array name="gpioSignalsParameters"/>
+                        <array name="gpioPinsOverView"/>
+                        <struct name="globalCfg"/>
+                        <array name="differentPeripheralsAdd"/>
+                     </config_set>
+                  </instance>
+               </instances>
+            </functional_group>
+            <functional_group name="BOARD_InitGPIOInt" uuid="5fbe4a21-178b-409e-b1e3-b16a4ada3cc3" called_from_default_init="false" id_prefix="" core="cm33_core0">
+               <description></description>
+               <options/>
+               <dependencies/>
+               <instances>
+                  <instance name="NVIC_2" uuid="417fd4d6-289d-416e-9d2a-868960fc414d" type="nvic" type_id="nvic" mode="general" peripheral="NVIC" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
+                     <config_set name="nvic">
+                        <array name="interrupt_table">
+                           <struct name="0"/>
+                           <struct name="1"/>
+                        </array>
+                        <array name="interrupts"/>
+                     </config_set>
+                  </instance>
+                  <instance name="GPIO0" uuid="4a5ac586-df5d-4266-8d25-c3c84db8d503" type="gpio" type_id="gpio_2.7.0" mode="GPIO" peripheral="GPIO1" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
+                     <config_set name="fsl_gpio">
+                        <setting name="enable_irq" value="true"/>
+                        <struct name="port_interrupt">
+                           <setting name="IRQn" value="GPIO10_IRQn"/>
+                           <setting name="enable_interrrupt" value="enabled"/>
+                           <setting name="enable_priority" value="false"/>
+                           <setting name="priority" value="0"/>
+                           <setting name="enable_custom_name" value="false"/>
+                        </struct>
+                        <setting name="enable_irq_1" value="false"/>
+                        <struct name="gpio_interrupt_1">
+                           <setting name="IRQn" value="GPIO01_IRQn"/>
+                           <setting name="enable_interrrupt" value="enabled"/>
+                           <setting name="enable_priority" value="false"/>
+                           <setting name="priority" value="1"/>
+                           <setting name="enable_custom_name" value="false"/>
+                        </struct>
+                        <setting name="enable_irq_EFT" value="false"/>
+                        <struct name="port_interrupt_EFT">
+                           <setting name="IRQn" value="noInt"/>
+                           <setting name="enable_interrrupt" value="enabled"/>
+                           <setting name="enable_priority" value="false"/>
+                           <setting name="priority" value="2"/>
+                           <setting name="enable_custom_name" value="false"/>
                         </struct>
                      </config_set>
                   </instance>

@@ -45,7 +45,8 @@ int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
-static long timer_int_flag;
+static int timer_int_flag;
+static int gpio_int_flag;
 static ctimer_config_t config;
 static ctimer_match_config_t matchConfig;
 
@@ -56,6 +57,27 @@ static ctimer_match_config_t matchConfig;
 void ctimer_match0_callback(uint32_t flags) {
 	timer_int_flag = 1;
 }
+
+
+/* GPIO10_IRQn interrupt handler */
+void GPIO0_INT_0_IRQHANDLER(void) {
+  /* Get pin flags 0 */
+  uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
+
+  gpio_int_flag = 1;
+
+  /* Clear pin flags 0 */
+  GPIO_GpioClearInterruptChannelFlags(GPIO1, pin_flags0, 0U);
+
+  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+     Store immediate overlapping exception return operation might vector to incorrect interrupt. */
+  #if defined __CORTEX_M && (__CORTEX_M == 4U)
+    __DSB();
+  #endif
+}
+
+
+
 /*!
  * @brief Main function
  */
@@ -63,8 +85,11 @@ void ctimer_match0_callback(uint32_t flags) {
 int main(void)
 {
 	int timer_counter = 0;
+	timer_int_flag = 0;
+	gpio_int_flag = 0;
 
 	BOARD_InitHardware();
+	BOARD_InitGPIOInt();
 
 	/* Init ctimer */
 	CLOCK_SetClkDiv(kCLOCK_DivCtimer0Clk, 1U);
@@ -85,8 +110,14 @@ int main(void)
 	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
 
 	while (1) {
+		if (gpio_int_flag == 1) {
+			timer_counter = 0;
+			gpio_int_flag = 0;
+
+			PRINTF("TIMER RESET\r\n");
+		}
 		if (timer_int_flag == 1) {
-			PRINTF("TIME: %d\r\n", timer_counter++);
+			PRINTF("TIME: %d, GPIO: %d\r\n", timer_counter++, GPIO_PinRead(BOARD_TIMERPINS_RESET_TIMER_GPIO, BOARD_TIMERPINS_RESET_TIMER_GPIO_PIN));
 			timer_int_flag = 0;
 		}
 	}

@@ -210,7 +210,7 @@ BOARD_TimerPins:
 - options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
 - pin_list:
   - {pin_num: L4, peripheral: GPIO1, signal: 'GPIO, 22', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, direction: INPUT,
-    gpio_per_interrupt_sel: output1, pull_select: up, pull_enable: enable}
+    gpio_per_interrupt_sel: output0, gpio_per_interrupt: kGPIO_InterruptLogicZero, pull_select: up, pull_enable: enable}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -239,8 +239,11 @@ void BOARD_TimerPins(void)
                        /* Mask bits to zero which are setting */
                        (~(GPIO_ICR_IRQS_MASK | GPIO_ICR_ISF_MASK)))
 
-                      /* Interrupt Select: Interrupt, trigger output, or DMA request 1. */
-                      | GPIO_ICR_IRQS(ICR_IRQS_irqs1));
+                      /* Interrupt Select: Interrupt, trigger output, or DMA request 0. */
+                      | GPIO_ICR_IRQS(ICR_IRQS_irqs0));
+
+    /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt when logic zero */
+    GPIO_SetPinInterruptConfig(BOARD_TIMERPINS_RESET_TIMER_GPIO, BOARD_TIMERPINS_RESET_TIMER_PIN, kGPIO_InterruptLogicZero);
 
     /* PORT1_22 (pin L4) is configured as PIO1_22 */
     PORT_SetPinMux(BOARD_TIMERPINS_RESET_TIMER_PORT, BOARD_TIMERPINS_RESET_TIMER_PIN, kPORT_MuxAlt0);

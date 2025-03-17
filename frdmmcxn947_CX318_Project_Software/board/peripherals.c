@@ -17,6 +17,9 @@ functionalGroups:
   UUID: 340e5fd0-acd6-4368-bdf4-3b70e8472cf2
   called_from_default_init: true
   selectedCore: cm33_core0
+- name: BOARD_InitGPIOInt
+  UUID: 5fbe4a21-178b-409e-b1e3-b16a4ada3cc3
+  selectedCore: cm33_core0
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
@@ -71,6 +74,7 @@ instance:
   - nvic:
     - interrupt_table:
       - 0: []
+      - 1: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -206,6 +210,80 @@ static void LP_FLEXCOMM4_init(void) {
 }
 
 /***********************************************************************************************************************
+ * BOARD_InitGPIOInt functional group
+ **********************************************************************************************************************/
+/***********************************************************************************************************************
+ * NVIC_2 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'NVIC_2'
+- type: 'nvic'
+- mode: 'general'
+- custom_name_enabled: 'false'
+- type_id: 'nvic'
+- functional_group: 'BOARD_InitGPIOInt'
+- peripheral: 'NVIC'
+- config_sets:
+  - nvic:
+    - interrupt_table:
+      - 0: []
+      - 1: []
+    - interrupts: []
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+
+/* Empty initialization function (commented out)
+static void NVIC_2_init(void) {
+} */
+
+/***********************************************************************************************************************
+ * GPIO0 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'GPIO0'
+- type: 'gpio'
+- mode: 'GPIO'
+- custom_name_enabled: 'false'
+- type_id: 'gpio_2.7.0'
+- functional_group: 'BOARD_InitGPIOInt'
+- peripheral: 'GPIO1'
+- config_sets:
+  - fsl_gpio:
+    - enable_irq: 'true'
+    - port_interrupt:
+      - IRQn: 'GPIO10_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '0'
+      - enable_custom_name: 'false'
+    - enable_irq_1: 'false'
+    - gpio_interrupt_1:
+      - IRQn: 'GPIO01_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '1'
+      - enable_custom_name: 'false'
+    - enable_irq_EFT: 'false'
+    - port_interrupt_EFT:
+      - IRQn: 'noInt'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '2'
+      - enable_custom_name: 'false'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+
+static void GPIO0_init(void) {
+  /* Make sure, the clock gate for port 1 is enabled (e. g. in pin_mux.c) */
+  /* Enable interrupt GPIO0_INT_0_IRQN request in the NVIC */
+  EnableIRQ(GPIO0_INT_0_IRQN);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
@@ -213,6 +291,12 @@ void BOARD_InitPeripherals(void)
   /* Initialize components */
   CTIMER0_init();
   LP_FLEXCOMM4_init();
+}
+
+void BOARD_InitGPIOInt(void)
+{
+  /* Initialize components */
+  GPIO0_init();
 }
 
 /***********************************************************************************************************************

@@ -84,7 +84,7 @@ void BOARD_InitPins(void);
  */
 void I2C_Pins(void);
 
-#define ICR_IRQS_irqs1 0x01u /*!<@brief Interrupt Select: Interrupt, trigger output, or DMA request 1 */
+#define ICR_IRQS_irqs0 0x00u /*!<@brief Interrupt Select: Interrupt, trigger output, or DMA request 0 */
 #define PCR_IBE_ibe1 0x01u   /*!<@brief Input Buffer Enable: Enables */
 #define PCR_PE_pe1 0x01u     /*!<@brief Pull Enable: Enables */
 #define PCR_PS_ps1 0x01u     /*!<@brief Pull Select: Enables internal pullup resistor */
