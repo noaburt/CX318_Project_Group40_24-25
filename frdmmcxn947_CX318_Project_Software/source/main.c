@@ -45,7 +45,7 @@ int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
-static int timer_int_flag;
+static long timer_int_flag;
 static ctimer_config_t config;
 static ctimer_match_config_t matchConfig;
 
@@ -62,7 +62,7 @@ void ctimer_match0_callback(uint32_t flags) {
 
 int main(void)
 {
-	timer_int_flag = 0;
+	int timer_counter = 0;
 
 	BOARD_InitHardware();
 
@@ -86,7 +86,8 @@ int main(void)
 
 	while (1) {
 		if (timer_int_flag == 1) {
-			PRINTF("TIME PASSED\r\n");
+			PRINTF("TIME: %d\r\n", timer_counter++);
+			timer_int_flag = 0;
 		}
 	}
 
