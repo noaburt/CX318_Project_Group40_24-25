@@ -12,12 +12,15 @@ processor: MCXN947
 package_id: MCXN947VDF
 mcu_data: ksdk2_0
 processor_version: 24.12.10
+pin_labels:
+- {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: MAX_INT, identifier: MAX_INT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
 
 #include "fsl_common.h"
 #include "fsl_port.h"
+#include "fsl_gpio.h"
 #include "pin_mux.h"
 
 /* FUNCTION ************************************************************************************************************
@@ -29,7 +32,7 @@ processor_version: 24.12.10
 void BOARD_InitBootPins(void)
 {
     BOARD_InitPins();
-    OLEDI2C();
+    MAX_InitIPins();
 }
 
 /* clang-format off */
@@ -135,26 +138,34 @@ void BOARD_InitPins(void)
 /* clang-format off */
 /*
  * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
-OLEDI2C:
+MAX_InitIPins:
 - options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
 - pin_list:
   - {pin_num: P1, peripheral: LP_FLEXCOMM2, signal: LPFLEXCOMM_P0, pin_signal: PIO4_0/WUU0_IN18/TRIG_IN6/FC2_P0/CT_INP16/SMARTDMA_PIO24/PLU_IN0/SINC0_MCLK3, pull_select: up,
     pull_enable: disable}
   - {pin_num: P2, peripheral: LP_FLEXCOMM2, signal: LPFLEXCOMM_P1, pin_signal: PIO4_1/TRIG_IN7/FC2_P1/CT_INP17/SMARTDMA_PIO25/PLU_IN1, pull_select: up, pull_enable: disable}
+  - {pin_num: L14, peripheral: GPIO5, signal: 'GPIO, 8', pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, direction: INPUT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
 
 /* FUNCTION ************************************************************************************************************
  *
- * Function Name : OLEDI2C
+ * Function Name : MAX_InitIPins
  * Description   : Configures pin routing and optionally pin electrical features.
  *
  * END ****************************************************************************************************************/
-void OLEDI2C(void)
+void MAX_InitIPins(void)
 {
     /* Enables the clock for PORT4: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port4);
+
+    gpio_pin_config_t MAX_INT_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO5_8 (pin L14)  */
+    GPIO_PinInit(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_PIN, &MAX_INT_config);
 
     /* PORT4_0 (pin P1) is configured as FC2_P0 */
     PORT_SetPinMux(PORT4, 0U, kPORT_MuxAlt2);
@@ -184,6 +195,16 @@ void OLEDI2C(void)
 
                      /* Pull Enable: Disables. */
                      | PORT_PCR_PE(PCR_PE_pe0)
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    PORT5->PCR[8] = ((PORT5->PCR[8] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_MUX_MASK | PORT_PCR_IBE_MASK)))
+
+                     /* Pin Multiplex Control: PORT5_8 (pin L14) is configured as PIO5_8. */
+                     | PORT_PCR_MUX(PORT5_PCR_MUX_mux00)
 
                      /* Input Buffer Enable: Enables. */
                      | PORT_PCR_IBE(PCR_IBE_ibe1));

@@ -24,6 +24,9 @@
          </generated_project_files>
          <pins_profile>
             <processor_version>24.12.10</processor_version>
+            <pin_labels>
+               <pin_label pin_num="L14" pin_signal="PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16" label="MAX_INT" identifier="MAX_INT"/>
+            </pin_labels>
          </pins_profile>
          <functions_list>
             <function name="BOARD_InitPins">
@@ -94,7 +97,7 @@
                   </pin>
                </pins>
             </function>
-            <function name="OLEDI2C">
+            <function name="MAX_InitIPins">
                <description>Configures pin routing and optionally pin electrical features.</description>
                <options>
                   <callFromInitBoot>true</callFromInitBoot>
@@ -102,17 +105,22 @@
                   <enableClock>true</enableClock>
                </options>
                <dependencies>
-                  <dependency resourceType="Peripheral" resourceId="LP_FLEXCOMM2" description="Peripheral LP_FLEXCOMM2 signals are routed in the Pins Tool, but the peripheral is not initialized in the Peripherals Tool." problem_level="1" source="Pins:OLEDI2C">
+                  <dependency resourceType="Peripheral" resourceId="LP_FLEXCOMM2" description="Peripheral LP_FLEXCOMM2 signals are routed in the Pins Tool, but the peripheral is not initialized in the Peripherals Tool." problem_level="1" source="Pins:MAX_InitIPins">
                      <feature name="initialized" evaluation="equal">
                         <data>true</data>
                      </feature>
                   </dependency>
-                  <dependency resourceType="SWComponent" resourceId="platform.drivers.common" description="Pins initialization requires the COMMON Driver in the project." problem_level="2" source="Pins:OLEDI2C">
+                  <dependency resourceType="SWComponent" resourceId="platform.drivers.common" description="Pins initialization requires the COMMON Driver in the project." problem_level="2" source="Pins:MAX_InitIPins">
                      <feature name="enabled" evaluation="equal" configuration="cm33_core0">
                         <data>true</data>
                      </feature>
                   </dependency>
-                  <dependency resourceType="SWComponent" resourceId="platform.drivers.port" description="Pins initialization requires the PORT Driver in the project." problem_level="2" source="Pins:OLEDI2C">
+                  <dependency resourceType="SWComponent" resourceId="platform.drivers.port" description="Pins initialization requires the PORT Driver in the project." problem_level="2" source="Pins:MAX_InitIPins">
+                     <feature name="enabled" evaluation="equal" configuration="cm33_core0">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
+                  <dependency resourceType="SWComponent" resourceId="platform.drivers.gpio" description="Pins initialization requires the GPIO Driver in the project." problem_level="2" source="Pins:MAX_InitIPins">
                      <feature name="enabled" evaluation="equal" configuration="cm33_core0">
                         <data>true</data>
                      </feature>
@@ -129,6 +137,11 @@
                      <pin_features>
                         <pin_feature name="pull_select" value="up"/>
                         <pin_feature name="pull_enable" value="disable"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="GPIO5" signal="GPIO, 8" pin_num="L14" pin_signal="PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16">
+                     <pin_features>
+                        <pin_feature name="direction" value="INPUT"/>
                      </pin_features>
                   </pin>
                </pins>

@@ -31,15 +31,30 @@ void BOARD_InitBootPins(void);
  */
 void BOARD_InitPins(void);
 
-#define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
-#define PCR_PE_pe0 0x00u   /*!<@brief Pull Enable: Disables */
-#define PCR_PS_ps1 0x01u   /*!<@brief Pull Select: Enables internal pullup resistor */
+#define PCR_IBE_ibe1 0x01u        /*!<@brief Input Buffer Enable: Enables */
+#define PCR_PE_pe0 0x00u          /*!<@brief Pull Enable: Disables */
+#define PCR_PS_ps1 0x01u          /*!<@brief Pull Select: Enables internal pullup resistor */
+#define PORT5_PCR_MUX_mux00 0x00u /*!<@brief Pin Multiplex Control: Alternative 0 (GPIO) */
+
+/*! @name PORT5_8 (coord L14), MAX_INT
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define MAX_INITIPINS_MAX_INT_GPIO GPIO5               /*!<@brief GPIO peripheral base pointer */
+#define MAX_INITIPINS_MAX_INT_GPIO_PIN 8U              /*!<@brief GPIO pin number */
+#define MAX_INITIPINS_MAX_INT_GPIO_PIN_MASK (1U << 8U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define MAX_INITIPINS_MAX_INT_PORT PORT5               /*!<@brief PORT peripheral base pointer */
+#define MAX_INITIPINS_MAX_INT_PIN 8U                   /*!<@brief PORT pin number */
+#define MAX_INITIPINS_MAX_INT_PIN_MASK (1U << 8U)      /*!<@brief PORT pin mask */
+                                                       /* @} */
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
  */
-void OLEDI2C(void);
+void MAX_InitIPins(void);
 
 #if defined(__cplusplus)
 }
