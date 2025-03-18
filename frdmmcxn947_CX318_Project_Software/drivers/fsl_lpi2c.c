@@ -982,6 +982,8 @@ status_t LPI2C_MasterTransferBlocking(LPI2C_Type *base, lpi2c_master_transfer_t 
             }
         }
 
+        uint8_t* test = (transfer->data);
+
         /* Send command buffer */
         uint32_t index = 0U;
         while (0U != cmdCount--)

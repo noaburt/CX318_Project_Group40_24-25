@@ -35,15 +35,17 @@ int32_t spo2; 					// SPo2 value
 int8_t spo2_valid; 				// SPo2 calculation validity
 int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
-uint8_t dummy;					// General 'dummy' variable
+uint8_t dummy[2];					// General 'dummy' variable
 
 /*******************************************************************************
  * Code
  ******************************************************************************/
 
-/* Return from main without ACTUALLY returning */
-void die(char* occurrence) {
-	PRINTF("PROGRAM FAILED AT: %s\r\n", occurrence);
+/* Return from main when error without ACTUALLY returning */
+void check_error(status_t result, char* occurrence) {
+
+	if (result == kStatus_Success) { return; }
+	PRINTF("PROGRAM FAILED AT: %s with %d\r\n", occurrence, result);
 
 	while (1);
 }
@@ -76,35 +78,39 @@ int main(void)
 	int32_t brightness;
 	float tmp;
 
+	status_t result;
+
 	MAX_Init();
-	if (MAX_Reset() != kStatus_Success) { die("Max Reset"); }
+	check_error(MAX_Reset(), "Max Reset");
 
     /* Reading REG_INTR_STATUS_1 clears interrupts */
-	if (MAX_Read(&dummy, REG_INTR_STATUS_1) != kStatus_Success) { die("Max Read INTR"); }
+	check_error(MAX_Read(&dummy[0], REG_INTR_STATUS_1), "Max Read INTR");
 
     /* Set configuration */
-	if (MAX_Start() != kStatus_Success) { die("Max Start"); }
+	check_error(MAX_Start(), "Max Start");
+
+	MAX_Read(&dummy[1], REG_PART_ID);
 
 	/* Prepare for reading data */
 	brightness = 0;
 	led_min = 0x3FFFF;
 	led_max = 0;
 
-	/* Buffer length stores 5 seconds of samples at 100s/s */
+	/* Buffer length stores 5 seconds of samples */
 	ir_buffer_len = 500;
 
 	/* Read the first 500 samples and determine signal range */
 	for (i = 0; i < ir_buffer_len; i++) {
 
-		while (GPIO_PinRead(MAX_INT_GPIO, MAX_INT_GPIO_PIN) == 1);
+		while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1);
 
-		MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i));  //read from MAX30102 FIFO
+		check_error(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
 
 		/* Update signal mix & max */
 		if (red_buffer[i] < led_min) { led_min = red_buffer[i]; }
 		if (red_buffer[i] > led_max) { led_max = red_buffer[i]; }
 
-		PRINTF("red = %i, ir = %i\r\n", red_buffer[i], ir_led_buffer[i]);
+		//PRINTF("red = %d, ir = %d\r\n", red_buffer[i], ir_led_buffer[i]);
 	}
 
 	prev_data = red_buffer[i];
@@ -136,24 +142,24 @@ int main(void)
 		for (i = 400; i < 500; i++) {
 			prev_data = red_buffer[i-1];
 
-			while (GPIO_PinRead(MAX_INT_GPIO, MAX_INT_GPIO_PIN) == 1) {}
+			while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1) {}
 
-			MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i));
+			check_error(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
 
 			if (red_buffer[i] > prev_data) {
-				temp = red_buffer[i] - prev_data;
-				temp /= (led_max-led_min);
-				temp *= MAX_BRIGHTNESS;
+				tmp = red_buffer[i] - prev_data;
+				tmp /= (led_max-led_min);
+				tmp *= MAX_BRIGHTNESS;
 
-				brightness -= (int) temp;
+				brightness -= (int) tmp;
 				if (brightness < 0) { brightness = 0; }
 
 			} else {
-				temp = prev_data - red_buffer[i];
-				temp /= (led_max-led_min);
-				temp *= MAX_BRIGHTNESS;
+				tmp = prev_data - red_buffer[i];
+				tmp /= (led_max-led_min);
+				tmp *= MAX_BRIGHTNESS;
 
-				brightness += (int) temp;
+				brightness += (int) tmp;
 				if(brightness > MAX_BRIGHTNESS) { brightness = MAX_BRIGHTNESS; }
 
 			}
@@ -161,7 +167,7 @@ int main(void)
 			// WRITE TO LEDs
 
 			PRINTF(
-					"red = %i, ir = %i, HR = %i, HRvalid = %i, SpO2 = %i, SpO2valid = %i\r\n",
+					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
 					red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
 			);
 
