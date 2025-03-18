@@ -24,7 +24,6 @@ int sendToMAX(uint8_t reg_addr, uint8_t reg_data)
 
 	int result = LPI2C_MasterSend(I2C_MAX, &reg_addr, 1);
 	result = LPI2C_MasterSend(I2C_MAX, &reg_data, 1);
-
 	result = LPI2C_MasterStop(I2C_MAX);
 
 	return result;
@@ -54,7 +53,7 @@ int readFromMAX(uint8_t read_addr, uint8_t* read_data)
 		*read_data = (uint8_t) ch_read_data;
 		result = kStatus_Success;
 	}
-	LPI2C_MasterStop(I2C_MAX);
+	result = LPI2C_MasterStop(I2C_MAX);
 
 	return result;
 }

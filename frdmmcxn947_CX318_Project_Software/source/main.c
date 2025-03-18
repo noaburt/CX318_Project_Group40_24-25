@@ -10,6 +10,7 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 #include "board.h"
+#include "peripherals.h"
 #include "app.h"
 #include "pin_mux.h"
 
@@ -50,6 +51,7 @@ int main(void)
 
     /* Init board hardware. */
     BOARD_InitHardware();
+    BOARD_InitPeripherals();
 
     SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq( kCLOCK_CoreSysClk ));
     int amount = CLOCK_GetFreq(kCLOCK_Fro12M) / 30;
@@ -62,10 +64,15 @@ int main(void)
 
 	initMAX();
 
+	int test = sendToMAX(REG_MODE_CONFIG, 0x40);
+	int test2 = readFromMAX(REG_MODE_CONFIG, &dummy);
+	PRINTF("DUMMY: %d\r\n");
+	int a = 1;
+
 	if (resetMAX() != kStatus_Success) { return 1; } // reset the MAX30102
 
 	/* read & clear INT status register */
-	if (readFromMAX(0, &dummy) != kStatus_Success) { return 1; }
+	if (readFromMAX(REG_INTR_STATUS_1, &dummy) != kStatus_Success) { return 1; }
 
 	/* initialise the MAX30102 */
 	if (startMAX() != kStatus_Success) { return 1; }

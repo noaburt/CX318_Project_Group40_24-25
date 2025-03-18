@@ -79,11 +79,76 @@ static void NVIC_init(void) {
 } */
 
 /***********************************************************************************************************************
+ * LP_FLEXCOMM2 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'LP_FLEXCOMM2'
+- type: 'lpflexcomm_lpi2c'
+- mode: 'polling'
+- custom_name_enabled: 'false'
+- type_id: 'lpflexcomm_lpi2c_2.1.1'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'LP_FLEXCOMM2'
+- config_sets:
+  - generalCfg:
+    - lpi2c_mode: 'master'
+    - clock_configuration:
+      - clockSource: 'LPFLEXCOMMFunctionClock'
+      - clockSourceFreq: 'ClocksTool_DefaultInit'
+    - master_config:
+      - enableMaster: 'true'
+      - enableDoze: 'true'
+      - debugEnable: 'true'
+      - ignoreAck: 'false'
+      - pinConfig: 'kLPI2C_2PinOpenDrain'
+      - baudRate_Hz: '100000'
+      - realBaudRateCount: []
+      - busIdleTimeout_ns: '0'
+      - pinLowTimeout_ns: '0'
+      - sdaGlitchFilterWidth_ns: '0'
+      - sclGlitchFilterWidth_ns: '0'
+      - hostRequest:
+        - enable: 'false'
+        - source: 'kLPI2C_HostRequestExternalPin'
+        - polarity: 'kLPI2C_HostRequestPinActiveHigh'
+      - enable_dma_master: 'false'
+      - lpi2c_dma_master_struct_t:
+        - DMATxEnable: 'true'
+        - DMARxEnable: 'true'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+const lpi2c_master_config_t LP_FLEXCOMM2_masterConfig = {
+  .enableMaster = true,
+  .enableDoze = true,
+  .debugEnable = true,
+  .ignoreAck = false,
+  .pinConfig = kLPI2C_2PinOpenDrain,
+  .baudRate_Hz = 100000UL,
+  .busIdleTimeout_ns = 0UL,
+  .pinLowTimeout_ns = 0UL,
+  .sdaGlitchFilterWidth_ns = 0U,
+  .sclGlitchFilterWidth_ns = 0U,
+  .hostRequest = {
+    .enable = false,
+    .source = kLPI2C_HostRequestExternalPin,
+    .polarity = kLPI2C_HostRequestPinActiveHigh
+  }
+};
+
+static void LP_FLEXCOMM2_init(void) {
+  /* LP_FLEXCOMM2 LPI2C leader initialization */
+  LPI2C_MasterInit(LP_FLEXCOMM2_PERIPHERAL, &LP_FLEXCOMM2_masterConfig, LP_FLEXCOMM2_CLOCK_SOURCE);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
 {
   /* Initialize components */
+  LP_FLEXCOMM2_init();
 }
 
 /***********************************************************************************************************************
