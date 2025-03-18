@@ -1,9 +1,7 @@
 /*
 ** ###################################################################
 **     Processors:          MCXN947VDF_cm33_core0
-**                          MCXN947VKL_cm33_core0
 **                          MCXN947VNL_cm33_core0
-**                          MCXN947VPB_cm33_core0
 **
 **     Compilers:           GNU C Compiler
 **                          IAR ANSI C/C++ Compiler for ARM
@@ -12,7 +10,7 @@
 **
 **     Reference manual:    MCXNx4x Reference Manual
 **     Version:             rev. 2.0, 2023-02-01
-**     Build:               b241120
+**     Build:               b231219
 **
 **     Abstract:
 **         Provides a system configuration function and a global variable that
@@ -20,7 +18,7 @@
 **         the oscillator (PLL) that is part of the microcontroller device.
 **
 **     Copyright 2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2024 NXP
+**     Copyright 2016-2023 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -85,7 +83,6 @@ __attribute__ ((weak)) void SystemInit (void) {
 
   SYSCON->NVM_CTRL &= ~SYSCON_NVM_CTRL_DIS_MBECC_ERR_DATA_MASK; /* enables bus error on multi-bit ECC error for data */
 
-#if !defined(__ZEPHYR__)
 #if defined(__MCUXPRESSO)
     extern void(*const g_pfnVectors[]) (void);
     SCB->VTOR = (uint32_t) &g_pfnVectors;
@@ -93,14 +90,12 @@ __attribute__ ((weak)) void SystemInit (void) {
     extern void *__Vectors;
     SCB->VTOR = (uint32_t) &__Vectors;
 #endif
-#endif
-
     /* enable the flash cache LPCAC */
     SYSCON->LPCAC_CTRL &= ~SYSCON_LPCAC_CTRL_DIS_LPCAC_MASK;
 
     /* Disable aGDET trigger the CHIP_RESET */
-    ITRC0->OUT_SEL[4][0] = (ITRC0->OUT_SEL[4][0] & ~ITRC_OUT_SEL_IN9_SELn_MASK) | (ITRC_OUT_SEL_IN9_SELn(0x2));
-    ITRC0->OUT_SEL[4][1] = (ITRC0->OUT_SEL[4][1] & ~ITRC_OUT_SEL_IN9_SELn_MASK) | (ITRC_OUT_SEL_IN9_SELn(0x2));
+    ITRC0->OUT_SEL[4][0] = (ITRC0->OUT_SEL[4][0] & ~ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN9_SELn_MASK) | (ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN9_SELn(0x2));
+    ITRC0->OUT_SEL[4][1] = (ITRC0->OUT_SEL[4][1] & ~ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN9_SELn_MASK) | (ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN9_SELn(0x2));
     /* Disable aGDET interrupt and reset */
     SPC0->ACTIVE_CFG |= SPC_ACTIVE_CFG_GLITCH_DETECT_DISABLE_MASK;
     SPC0->GLITCH_DETECT_SC &= ~SPC_GLITCH_DETECT_SC_LOCK_MASK;
@@ -108,13 +103,10 @@ __attribute__ ((weak)) void SystemInit (void) {
     SPC0->GLITCH_DETECT_SC |= SPC_GLITCH_DETECT_SC_LOCK_MASK;
 
     /* Disable dGDET trigger the CHIP_RESET */
-    ITRC0->OUT_SEL[4][0] = (ITRC0->OUT_SEL[4][0] & ~ ITRC_OUT_SEL_IN0_SELn_MASK) | (ITRC_OUT_SEL_IN0_SELn(0x2));
-    ITRC0->OUT_SEL[4][1] = (ITRC0->OUT_SEL[4][1] & ~ ITRC_OUT_SEL_IN0_SELn_MASK) | (ITRC_OUT_SEL_IN0_SELn(0x2));
+    ITRC0->OUT_SEL[4][0] = (ITRC0->OUT_SEL[4][0] & ~ ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN0_SELn_MASK) | (ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN0_SELn(0x2));
+    ITRC0->OUT_SEL[4][1] = (ITRC0->OUT_SEL[4][1] & ~ ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN0_SELn_MASK) | (ITRC_OUTX_SEL_OUTX_SELY_OUT_SEL_IN0_SELn(0x2));
     GDET0->GDET_ENABLE1 = 0;
     GDET1->GDET_ENABLE1 = 0;
-
-    /* Route the PMC bandgap buffer signal to the ADC */
-    SPC0->CORELDO_CFG |= (1U << 24U);
 
   SystemInitHook();
 }

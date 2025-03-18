@@ -25,52 +25,6 @@ extern "C" {
  */
 void BOARD_InitBootPins(void);
 
-#define PCR_IBE_ibe1 0x01u        /*!<@brief Input Buffer Enable: Enables */
-#define PCR_PE_pe1 0x01u          /*!<@brief Pull Enable: Enables */
-#define PCR_PS_ps1 0x01u          /*!<@brief Pull Select: Enables internal pullup resistor */
-#define PORT5_PCR_MUX_mux00 0x00u /*!<@brief Pin Multiplex Control: Alternative 0 (GPIO) */
-
-/*! @name PORT1_8 (coord A1), P1_8/J9[32]
-  @{ */
-
-/* Symbols to be used with PORT driver */
-#define DEBUG_UART_RX_PORT PORT1               /*!<@brief PORT peripheral base pointer */
-#define DEBUG_UART_RX_PIN 8U                   /*!<@brief PORT pin number */
-#define DEBUG_UART_RX_PIN_MASK (1U << 8U)      /*!<@brief PORT pin mask */
-                                               /* @} */
-
-/*! @name PORT1_9 (coord B1), P1_9/J9[30]
-  @{ */
-
-/* Symbols to be used with PORT driver */
-#define DEBUG_UART_TX_PORT PORT1               /*!<@brief PORT peripheral base pointer */
-#define DEBUG_UART_TX_PIN 9U                   /*!<@brief PORT pin number */
-#define DEBUG_UART_TX_PIN_MASK (1U << 9U)      /*!<@brief PORT pin mask */
-                                               /* @} */
-
-/*! @name PORT0_2 (coord B16), P0_2/SWO/J23[6]/D16[4]
-  @{ */
-
-/* Symbols to be used with PORT driver */
-#define DEBUG_SWD_SWO_PORT PORT0               /*!<@brief PORT peripheral base pointer */
-#define DEBUG_SWD_SWO_PIN 2U                   /*!<@brief PORT pin number */
-#define DEBUG_SWD_SWO_PIN_MASK (1U << 2U)      /*!<@brief PORT pin mask */
-                                               /* @} */
-
-/*! @name PORT5_8 (coord L14), P5_8/U9[19]/J9[31]
-  @{ */
-
-/* Symbols to be used with GPIO driver */
-#define MAX_INT_GPIO GPIO5               /*!<@brief GPIO peripheral base pointer */
-#define MAX_INT_GPIO_PIN 8U              /*!<@brief GPIO pin number */
-#define MAX_INT_GPIO_PIN_MASK (1U << 8U) /*!<@brief GPIO pin mask */
-
-/* Symbols to be used with PORT driver */
-#define MAX_INT_PORT PORT5               /*!<@brief PORT peripheral base pointer */
-#define MAX_INT_PIN 8U                   /*!<@brief PORT pin number */
-#define MAX_INT_PIN_MASK (1U << 8U)      /*!<@brief PORT pin mask */
-                                         /* @} */
-
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
@@ -78,14 +32,14 @@ void BOARD_InitBootPins(void);
 void BOARD_InitPins(void);
 
 #define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
-#define PCR_PE_pe1 0x01u   /*!<@brief Pull Enable: Enables */
+#define PCR_PE_pe0 0x00u   /*!<@brief Pull Enable: Disables */
 #define PCR_PS_ps1 0x01u   /*!<@brief Pull Select: Enables internal pullup resistor */
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
  */
-void I2C_Pins(void);
+void OLEDI2C(void);
 
 #if defined(__cplusplus)
 }

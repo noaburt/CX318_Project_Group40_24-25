@@ -11,10 +11,9 @@ processor: MCXN947
 package_id: MCXN947VDF
 mcu_data: ksdk2_0
 processor_version: 24.12.10
-board: FRDM-MCXN947
 functionalGroups:
 - name: BOARD_InitPeripherals
-  UUID: 340e5fd0-acd6-4368-bdf4-3b70e8472cf2
+  UUID: ef7ecff6-0855-450c-9af8-8018a5670f27
   called_from_default_init: true
   selectedCore: cm33_core0
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
@@ -22,7 +21,7 @@ functionalGroups:
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 component:
 - type: 'system'
-- type_id: 'system'
+- type_id: 'system_54b53072540eeeb8f8e9343e71f28176'
 - global_system_definitions:
   - user_definitions: ''
   - user_includes: ''
@@ -32,7 +31,7 @@ component:
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 component:
 - type: 'uart_cmsis_common'
-- type_id: 'uart_cmsis_common'
+- type_id: 'uart_cmsis_common_9cb8e302497aa696fdbb5a4fd622c2a8'
 - global_USART_CMSIS_common:
   - quick_selection: 'default'
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
@@ -40,7 +39,7 @@ component:
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 component:
 - type: 'gpio_adapter_common'
-- type_id: 'gpio_adapter_common'
+- type_id: 'gpio_adapter_common_57579b9ac814fe26bf95df0a384c36b6'
 - global_gpio_adapter_common:
   - quick_selection: 'default'
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
@@ -79,76 +78,11 @@ static void NVIC_init(void) {
 } */
 
 /***********************************************************************************************************************
- * LP_FLEXCOMM2 initialization code
- **********************************************************************************************************************/
-/* clang-format off */
-/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
-instance:
-- name: 'LP_FLEXCOMM2'
-- type: 'lpflexcomm_lpi2c'
-- mode: 'polling'
-- custom_name_enabled: 'false'
-- type_id: 'lpflexcomm_lpi2c_2.1.1'
-- functional_group: 'BOARD_InitPeripherals'
-- peripheral: 'LP_FLEXCOMM2'
-- config_sets:
-  - generalCfg:
-    - lpi2c_mode: 'master'
-    - clock_configuration:
-      - clockSource: 'LPFLEXCOMMFunctionClock'
-      - clockSourceFreq: 'ClocksTool_DefaultInit'
-    - master_config:
-      - enableMaster: 'true'
-      - enableDoze: 'true'
-      - debugEnable: 'true'
-      - ignoreAck: 'false'
-      - pinConfig: 'kLPI2C_2PinOpenDrain'
-      - baudRate_Hz: '100000'
-      - realBaudRateCount: []
-      - busIdleTimeout_ns: '0'
-      - pinLowTimeout_ns: '0'
-      - sdaGlitchFilterWidth_ns: '0'
-      - sclGlitchFilterWidth_ns: '0'
-      - hostRequest:
-        - enable: 'false'
-        - source: 'kLPI2C_HostRequestExternalPin'
-        - polarity: 'kLPI2C_HostRequestPinActiveHigh'
-      - enable_dma_master: 'false'
-      - lpi2c_dma_master_struct_t:
-        - DMATxEnable: 'true'
-        - DMARxEnable: 'true'
- * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
-/* clang-format on */
-const lpi2c_master_config_t LP_FLEXCOMM2_masterConfig = {
-  .enableMaster = true,
-  .enableDoze = true,
-  .debugEnable = true,
-  .ignoreAck = false,
-  .pinConfig = kLPI2C_2PinOpenDrain,
-  .baudRate_Hz = 100000UL,
-  .busIdleTimeout_ns = 0UL,
-  .pinLowTimeout_ns = 0UL,
-  .sdaGlitchFilterWidth_ns = 0U,
-  .sclGlitchFilterWidth_ns = 0U,
-  .hostRequest = {
-    .enable = false,
-    .source = kLPI2C_HostRequestExternalPin,
-    .polarity = kLPI2C_HostRequestPinActiveHigh
-  }
-};
-
-static void LP_FLEXCOMM2_init(void) {
-  /* LP_FLEXCOMM2 LPI2C leader initialization */
-  LPI2C_MasterInit(LP_FLEXCOMM2_PERIPHERAL, &LP_FLEXCOMM2_masterConfig, LP_FLEXCOMM2_CLOCK_SOURCE);
-}
-
-/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
 {
   /* Initialize components */
-  LP_FLEXCOMM2_init();
 }
 
 /***********************************************************************************************************************

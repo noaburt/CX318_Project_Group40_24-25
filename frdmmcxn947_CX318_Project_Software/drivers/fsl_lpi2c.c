@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, 2024 NXP
+ * Copyright 2022 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -130,7 +130,7 @@ uint32_t LPI2C_GetInstance(LPI2C_Type *base)
     uint32_t instance;
     for (instance = 0U; instance < ARRAY_SIZE(kLpi2cBases); ++instance)
     {
-        if (MSDK_REG_SECURE_ADDR(kLpi2cBases[instance]) == MSDK_REG_SECURE_ADDR(base))
+        if (kLpi2cBases[instance] == base)
         {
             break;
         }
@@ -489,9 +489,7 @@ void LPI2C_MasterDeinit(LPI2C_Type *base)
     LPI2C_MasterReset(base);
     if(LP_FLEXCOMM_GetBaseAddress(instance) != 0U)
     {
-#if !(defined(LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER) && LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER)
         LP_FLEXCOMM_Deinit(instance);
-#endif
     }
     else
     {
@@ -505,6 +503,9 @@ void LPI2C_MasterDeinit(LPI2C_Type *base)
 
 #endif /* FSL_SDK_DISABLE_DRIVER_CLOCK_CONTROL */
     }
+#if !(defined(LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER) && LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER)
+    LP_FLEXCOMM_Deinit(LPI2C_GetInstance(base));
+#endif
 }
 
 /*!
@@ -700,7 +701,8 @@ status_t LPI2C_MasterStart(LPI2C_Type *base, uint8_t address, lpi2c_direction_t 
         if (kStatus_Success == result)
         {
             /* Issue start command. */
-            base->MTDR = (uint32_t)kStartCmd | ((uint32_t)address << 1U); // | (uint32_t)dir);
+        	uint32_t test = ((uint32_t)address << 1U) | (uint32_t)dir;
+            base->MTDR = (uint32_t)kStartCmd | (((uint32_t)address << 1U) | (uint32_t)dir);
         }
     }
 
@@ -928,6 +930,7 @@ status_t LPI2C_MasterTransferBlocking(LPI2C_Type *base, lpi2c_master_transfer_t 
     assert(transfer->subaddressSize <= sizeof(transfer->subaddress));
 
     status_t result = kStatus_Success;
+    status_t ret = kStatus_Success;
     uint16_t commandBuffer[7];
     uint32_t cmdCount = 0U;
 
@@ -1018,13 +1021,16 @@ status_t LPI2C_MasterTransferBlocking(LPI2C_Type *base, lpi2c_master_transfer_t 
                 }
             }
         }
-
         /* Transmit fail */
         if (kStatus_Success != result)
         {
             if ((transfer->flags & (uint32_t)kLPI2C_TransferNoStopFlag) == 0U)
             {
-                (void)LPI2C_MasterStop(base);
+                ret = LPI2C_MasterStop(base);
+                if(kStatus_Success != ret)
+                {
+                    result = ret;
+                }
             }
         }
     }
@@ -1709,9 +1715,6 @@ void LPI2C_SlaveInit(LPI2C_Type *base, const lpi2c_slave_config_t *slaveConfig, 
       
     }
 
-    /* Check target feature */
-    assert((base->VERID & LPI2C_VERID_FEATURE_MASK) == 0x3U);
-
     /* Restore to reset conditions. */
     LPI2C_SlaveReset(base);
 
@@ -1774,9 +1777,7 @@ void LPI2C_SlaveDeinit(LPI2C_Type *base)
     LPI2C_SlaveReset(base);
     if(LP_FLEXCOMM_GetBaseAddress(instance) != 0U)
     {
-#if !(defined(LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER) && LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER)
         LP_FLEXCOMM_Deinit(instance);
-#endif
     }
     else
     {
@@ -1790,6 +1791,9 @@ void LPI2C_SlaveDeinit(LPI2C_Type *base)
 
 #endif /* FSL_SDK_DISABLE_DRIVER_CLOCK_CONTROL */
     }
+#if !(defined(LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER) && LPFLEXCOMM_INIT_NOT_USED_IN_DRIVER)
+    LP_FLEXCOMM_Deinit(LPI2C_GetInstance(base));
+#endif
 }
 
 /*!
@@ -2390,7 +2394,6 @@ void LPI2C_SlaveTransferHandleIRQ(uint32_t instance, void *lpi2cSlaveHandle)
  * @param base The LPI2C peripheral base address.
  * @param instance The LPI2C peripheral instance number.
  */
-void LPI2C_CommonIRQHandler(LPI2C_Type *base, uint32_t instance);
 void LPI2C_CommonIRQHandler(LPI2C_Type *base, uint32_t instance)
 {
     /* Check for master IRQ. */
@@ -2401,7 +2404,7 @@ void LPI2C_CommonIRQHandler(LPI2C_Type *base, uint32_t instance)
     }
 
     /* Check for slave IRQ. */
-    if (((base->VERID & LPI2C_VERID_FEATURE_MASK) == 0x3U) && (0U != (base->SCR & LPI2C_SCR_SEN_MASK)) && (NULL != s_lpi2cSlaveIsr))
+    if ((0U != (base->SCR & LPI2C_SCR_SEN_MASK)) && (NULL != s_lpi2cSlaveIsr))
     {
         /* Slave mode. */
         s_lpi2cSlaveIsr(instance, s_lpi2cSlaveHandle[instance]);

@@ -1,20 +1,13 @@
+#ifndef _MAX30102_H_
+#define _MAX30102_H_
 
-/* MAX30102 header file - addresses & functions for communicating with MAXREFDES117 board */
-/* Slightly altered version of MAX30102.h from sample code */
+#include "fsl_common.h"
 
-#include <stdint.h>
+/* I2C Interface */
+#define MAX_I2C 	(LPI2C2)
+#define MAX_ADDRESS 0x57
 
-/* I2C constants */
-#define EXAMPLE_I2C_MASTER_BASE (LPI2C2_BASE)
-#define LPI2C_MASTER_CLOCK_FREQUENCY (CLOCK_GetLPFlexCommClkFreq(2u) / 30U)
-#define EXAMPLE_I2C_MASTER ((LPI2C_Type *)EXAMPLE_I2C_MASTER_BASE)
-#define I2C_MAX LPI2C2
-
-/* read / write registers */
-#define MAX_READ_ADDR 0xAF
-#define MAX_WRITE_ADDR 0xAE
-
-/* register addresses */
+/* Register Addresses */
 #define REG_INTR_STATUS_1 0x00
 #define REG_INTR_STATUS_2 0x01
 #define REG_INTR_ENABLE_1 0x02
@@ -38,9 +31,13 @@
 #define REG_REV_ID 0xFE
 #define REG_PART_ID 0xFF
 
-int initMAX();
-int startMAX();
-int readFifoMAX(uint32_t *read_led_ptr, uint32_t *read_ir_ptr);
-int sendToMAX(uint8_t reg_addr, uint8_t reg_data);
-int readFromMAX(uint8_t read_addr, uint8_t* read_data);
-int resetMAX();
+
+void MAX_Init(void);
+status_t MAX_Reset(void);
+status_t MAX_Start(void);
+
+status_t MAX_Send(uint8_t* buffer, uint16_t size, uint8_t CD);
+status_t MAX_Read(uint8_t* buffer, uint8_t CD);
+status_t MAX_Read_FIFO(uint32_t* led_ptr, uint32_t* ir_ptr);
+
+#endif /* _MAX30102_H_ */

@@ -12,16 +12,12 @@ processor: MCXN947
 package_id: MCXN947VDF
 mcu_data: ksdk2_0
 processor_version: 24.12.10
-board: FRDM-MCXN947
-pin_labels:
-- {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: 'P5_8/U9[19]/J9[31]', identifier: MAX_INT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
 
 #include "fsl_common.h"
 #include "fsl_port.h"
-#include "fsl_gpio.h"
 #include "pin_mux.h"
 
 /* FUNCTION ************************************************************************************************************
@@ -33,14 +29,14 @@ pin_labels:
 void BOARD_InitBootPins(void)
 {
     BOARD_InitPins();
-    I2C_Pins();
+    OLEDI2C();
 }
 
 /* clang-format off */
 /*
  * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 BOARD_InitPins:
-- options: {callFromInitBoot: 'true', prefix: '', coreID: cm33_core0, enableClock: 'true'}
+- options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
 - pin_list:
   - {pin_num: A1, peripheral: LP_FLEXCOMM4, signal: LPFLEXCOMM_P0, pin_signal: PIO1_8/WUU0_IN10/LPTMR1_ALT3/TRACE_DATA0/FC4_P0/FC5_P4/CT_INP8/SCT0_OUT2/FLEXIO0_D16/SMARTDMA_PIO4/PLU_OUT0/ENET0_TXD2/I3C1_SDA/TSI0_CH17/ADC1_A8,
     slew_rate: fast, open_drain: disable, drive_strength: low, pull_select: down, pull_enable: disable, passive_filter: disable, pull_value: low, input_buffer: enable,
@@ -49,7 +45,6 @@ BOARD_InitPins:
     slew_rate: fast, open_drain: disable, drive_strength: low, pull_select: down, pull_enable: disable, passive_filter: disable, input_buffer: enable, invert_input: normal}
   - {pin_num: B16, peripheral: SWD, signal: SWO, pin_signal: PIO0_2/TDO/SWO/FC1_P2/CT0_MAT0/UTICK_CAP0/I3C0_PUR, slew_rate: fast, open_drain: disable, drive_strength: high,
     pull_select: down, pull_enable: disable, input_buffer: enable, invert_input: normal}
-  - {pin_num: L14, peripheral: GPIO5, signal: 'GPIO, 8', pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, direction: INPUT, pull_select: up, pull_enable: enable}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -67,119 +62,96 @@ void BOARD_InitPins(void)
     /* Enables the clock for PORT1: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port1);
 
-    gpio_pin_config_t MAX_INT_config = {
-        .pinDirection = kGPIO_DigitalInput,
-        .outputLogic = 0U
-    };
-    /* Initialize GPIO functionality on pin PIO5_8 (pin L14)  */
-    GPIO_PinInit(MAX_INT_GPIO, MAX_INT_PIN, &MAX_INT_config);
-
-    const port_pin_config_t DEBUG_SWD_SWO = {/* Internal pull-up/down resistor is disabled */
-                                             .pullSelect = kPORT_PullDisable,
-                                             /* Low internal pull resistor value is selected. */
-                                             .pullValueSelect = kPORT_LowPullResistor,
-                                             /* Fast slew rate is configured */
-                                             .slewRate = kPORT_FastSlewRate,
-                                             /* Passive input filter is disabled */
-                                             .passiveFilterEnable = kPORT_PassiveFilterDisable,
-                                             /* Open drain output is disabled */
-                                             .openDrainEnable = kPORT_OpenDrainDisable,
-                                             /* High drive strength is configured */
-                                             .driveStrength = kPORT_HighDriveStrength,
-                                             /* Pin is configured as SWO */
-                                             .mux = kPORT_MuxAlt1,
-                                             /* Digital input enabled */
-                                             .inputBuffer = kPORT_InputBufferEnable,
-                                             /* Digital input is not inverted */
-                                             .invertInput = kPORT_InputNormal,
-                                             /* Pin Control Register fields [15:0] are not locked */
-                                             .lockRegister = kPORT_UnlockRegister};
+    const port_pin_config_t port0_2_pinB16_config = {/* Internal pull-up/down resistor is disabled */
+                                                     .pullSelect = kPORT_PullDisable,
+                                                     /* Low internal pull resistor value is selected. */
+                                                     .pullValueSelect = kPORT_LowPullResistor,
+                                                     /* Fast slew rate is configured */
+                                                     .slewRate = kPORT_FastSlewRate,
+                                                     /* Passive input filter is disabled */
+                                                     .passiveFilterEnable = kPORT_PassiveFilterDisable,
+                                                     /* Open drain output is disabled */
+                                                     .openDrainEnable = kPORT_OpenDrainDisable,
+                                                     /* High drive strength is configured */
+                                                     .driveStrength = kPORT_HighDriveStrength,
+                                                     /* Pin is configured as SWO */
+                                                     .mux = kPORT_MuxAlt1,
+                                                     /* Digital input enabled */
+                                                     .inputBuffer = kPORT_InputBufferEnable,
+                                                     /* Digital input is not inverted */
+                                                     .invertInput = kPORT_InputNormal,
+                                                     /* Pin Control Register fields [15:0] are not locked */
+                                                     .lockRegister = kPORT_UnlockRegister};
     /* PORT0_2 (pin B16) is configured as SWO */
-    PORT_SetPinConfig(DEBUG_SWD_SWO_PORT, DEBUG_SWD_SWO_PIN, &DEBUG_SWD_SWO);
+    PORT_SetPinConfig(PORT0, 2U, &port0_2_pinB16_config);
 
-    const port_pin_config_t DEBUG_UART_RX = {/* Internal pull-up/down resistor is disabled */
-                                             .pullSelect = kPORT_PullDisable,
-                                             /* Low internal pull resistor value is selected. */
-                                             .pullValueSelect = kPORT_LowPullResistor,
-                                             /* Fast slew rate is configured */
-                                             .slewRate = kPORT_FastSlewRate,
-                                             /* Passive input filter is disabled */
-                                             .passiveFilterEnable = kPORT_PassiveFilterDisable,
-                                             /* Open drain output is disabled */
-                                             .openDrainEnable = kPORT_OpenDrainDisable,
-                                             /* Low drive strength is configured */
-                                             .driveStrength = kPORT_LowDriveStrength,
-                                             /* Pin is configured as FC4_P0 */
-                                             .mux = kPORT_MuxAlt2,
-                                             /* Digital input enabled */
-                                             .inputBuffer = kPORT_InputBufferEnable,
-                                             /* Digital input is not inverted */
-                                             .invertInput = kPORT_InputNormal,
-                                             /* Pin Control Register fields [15:0] are not locked */
-                                             .lockRegister = kPORT_UnlockRegister};
+    const port_pin_config_t port1_8_pinA1_config = {/* Internal pull-up/down resistor is disabled */
+                                                    .pullSelect = kPORT_PullDisable,
+                                                    /* Low internal pull resistor value is selected. */
+                                                    .pullValueSelect = kPORT_LowPullResistor,
+                                                    /* Fast slew rate is configured */
+                                                    .slewRate = kPORT_FastSlewRate,
+                                                    /* Passive input filter is disabled */
+                                                    .passiveFilterEnable = kPORT_PassiveFilterDisable,
+                                                    /* Open drain output is disabled */
+                                                    .openDrainEnable = kPORT_OpenDrainDisable,
+                                                    /* Low drive strength is configured */
+                                                    .driveStrength = kPORT_LowDriveStrength,
+                                                    /* Pin is configured as FC4_P0 */
+                                                    .mux = kPORT_MuxAlt2,
+                                                    /* Digital input enabled */
+                                                    .inputBuffer = kPORT_InputBufferEnable,
+                                                    /* Digital input is not inverted */
+                                                    .invertInput = kPORT_InputNormal,
+                                                    /* Pin Control Register fields [15:0] are not locked */
+                                                    .lockRegister = kPORT_UnlockRegister};
     /* PORT1_8 (pin A1) is configured as FC4_P0 */
-    PORT_SetPinConfig(DEBUG_UART_RX_PORT, DEBUG_UART_RX_PIN, &DEBUG_UART_RX);
+    PORT_SetPinConfig(PORT1, 8U, &port1_8_pinA1_config);
 
-    const port_pin_config_t DEBUG_UART_TX = {/* Internal pull-up/down resistor is disabled */
-                                             .pullSelect = kPORT_PullDisable,
-                                             /* Low internal pull resistor value is selected. */
-                                             .pullValueSelect = kPORT_LowPullResistor,
-                                             /* Fast slew rate is configured */
-                                             .slewRate = kPORT_FastSlewRate,
-                                             /* Passive input filter is disabled */
-                                             .passiveFilterEnable = kPORT_PassiveFilterDisable,
-                                             /* Open drain output is disabled */
-                                             .openDrainEnable = kPORT_OpenDrainDisable,
-                                             /* Low drive strength is configured */
-                                             .driveStrength = kPORT_LowDriveStrength,
-                                             /* Pin is configured as FC4_P1 */
-                                             .mux = kPORT_MuxAlt2,
-                                             /* Digital input enabled */
-                                             .inputBuffer = kPORT_InputBufferEnable,
-                                             /* Digital input is not inverted */
-                                             .invertInput = kPORT_InputNormal,
-                                             /* Pin Control Register fields [15:0] are not locked */
-                                             .lockRegister = kPORT_UnlockRegister};
+    const port_pin_config_t port1_9_pinB1_config = {/* Internal pull-up/down resistor is disabled */
+                                                    .pullSelect = kPORT_PullDisable,
+                                                    /* Low internal pull resistor value is selected. */
+                                                    .pullValueSelect = kPORT_LowPullResistor,
+                                                    /* Fast slew rate is configured */
+                                                    .slewRate = kPORT_FastSlewRate,
+                                                    /* Passive input filter is disabled */
+                                                    .passiveFilterEnable = kPORT_PassiveFilterDisable,
+                                                    /* Open drain output is disabled */
+                                                    .openDrainEnable = kPORT_OpenDrainDisable,
+                                                    /* Low drive strength is configured */
+                                                    .driveStrength = kPORT_LowDriveStrength,
+                                                    /* Pin is configured as FC4_P1 */
+                                                    .mux = kPORT_MuxAlt2,
+                                                    /* Digital input enabled */
+                                                    .inputBuffer = kPORT_InputBufferEnable,
+                                                    /* Digital input is not inverted */
+                                                    .invertInput = kPORT_InputNormal,
+                                                    /* Pin Control Register fields [15:0] are not locked */
+                                                    .lockRegister = kPORT_UnlockRegister};
     /* PORT1_9 (pin B1) is configured as FC4_P1 */
-    PORT_SetPinConfig(DEBUG_UART_TX_PORT, DEBUG_UART_TX_PIN, &DEBUG_UART_TX);
-
-    PORT5->PCR[8] = ((PORT5->PCR[8] &
-                      /* Mask bits to zero which are setting */
-                      (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_MUX_MASK | PORT_PCR_IBE_MASK)))
-
-                     /* Pull Select: Enables internal pullup resistor. */
-                     | PORT_PCR_PS(PCR_PS_ps1)
-
-                     /* Pull Enable: Enables. */
-                     | PORT_PCR_PE(PCR_PE_pe1)
-
-                     /* Pin Multiplex Control: PORT5_8 (pin L14) is configured as PIO5_8. */
-                     | PORT_PCR_MUX(PORT5_PCR_MUX_mux00)
-
-                     /* Input Buffer Enable: Enables. */
-                     | PORT_PCR_IBE(PCR_IBE_ibe1));
+    PORT_SetPinConfig(PORT1, 9U, &port1_9_pinB1_config);
 }
 
 /* clang-format off */
 /*
  * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
-I2C_Pins:
+OLEDI2C:
 - options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
 - pin_list:
   - {pin_num: P1, peripheral: LP_FLEXCOMM2, signal: LPFLEXCOMM_P0, pin_signal: PIO4_0/WUU0_IN18/TRIG_IN6/FC2_P0/CT_INP16/SMARTDMA_PIO24/PLU_IN0/SINC0_MCLK3, pull_select: up,
-    pull_enable: enable}
-  - {pin_num: P2, peripheral: LP_FLEXCOMM2, signal: LPFLEXCOMM_P1, pin_signal: PIO4_1/TRIG_IN7/FC2_P1/CT_INP17/SMARTDMA_PIO25/PLU_IN1, pull_select: up, pull_enable: enable}
+    pull_enable: disable}
+  - {pin_num: P2, peripheral: LP_FLEXCOMM2, signal: LPFLEXCOMM_P1, pin_signal: PIO4_1/TRIG_IN7/FC2_P1/CT_INP17/SMARTDMA_PIO25/PLU_IN1, pull_select: up, pull_enable: disable}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
 
 /* FUNCTION ************************************************************************************************************
  *
- * Function Name : I2C_Pins
+ * Function Name : OLEDI2C
  * Description   : Configures pin routing and optionally pin electrical features.
  *
  * END ****************************************************************************************************************/
-void I2C_Pins(void)
+void OLEDI2C(void)
 {
     /* Enables the clock for PORT4: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port4);
@@ -194,8 +166,8 @@ void I2C_Pins(void)
                      /* Pull Select: Enables internal pullup resistor. */
                      | PORT_PCR_PS(PCR_PS_ps1)
 
-                     /* Pull Enable: Enables. */
-                     | PORT_PCR_PE(PCR_PE_pe1)
+                     /* Pull Enable: Disables. */
+                     | PORT_PCR_PE(PCR_PE_pe0)
 
                      /* Input Buffer Enable: Enables. */
                      | PORT_PCR_IBE(PCR_IBE_ibe1));
@@ -210,8 +182,8 @@ void I2C_Pins(void)
                      /* Pull Select: Enables internal pullup resistor. */
                      | PORT_PCR_PS(PCR_PS_ps1)
 
-                     /* Pull Enable: Enables. */
-                     | PORT_PCR_PE(PCR_PE_pe1)
+                     /* Pull Enable: Disables. */
+                     | PORT_PCR_PE(PCR_PE_pe0)
 
                      /* Input Buffer Enable: Enables. */
                      | PORT_PCR_IBE(PCR_IBE_ibe1));

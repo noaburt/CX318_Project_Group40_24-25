@@ -23,7 +23,6 @@ processor: MCXN947
 package_id: MCXN947VDF
 mcu_data: ksdk2_0
 processor_version: 24.12.10
-board: FRDM-MCXN947
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
 
@@ -273,7 +272,7 @@ called_from_default_init: true
 outputs:
 - {id: CLK_144M_clock.outFreq, value: 144 MHz}
 - {id: CLK_48M_clock.outFreq, value: 48 MHz}
-- {id: FLEXCOMM2_clock.outFreq, value: 400 kHz, locked: true, accuracy: '0.001'}
+- {id: FLEXCOMM2_clock.outFreq, value: 100 kHz, locked: true, accuracy: '0.001'}
 - {id: FRO_12M_clock.outFreq, value: 12 MHz}
 - {id: FRO_HF_clock.outFreq, value: 48 MHz}
 - {id: MAIN_clock.outFreq, value: 150 MHz}
@@ -292,7 +291,7 @@ settings:
 - {id: SCG.PLL0_NDIV.scale, value: '8', locked: true}
 - {id: SCG.SCSSEL.sel, value: SCG.PLL0_CLK}
 - {id: SYSCON.FCCLKSEL2.sel, value: SCG.FRO_12M}
-- {id: SYSCON.FLEXCOMM2CLKDIV.scale, value: '30'}
+- {id: SYSCON.FLEXCOMM2CLKDIV.scale, value: '120'}
 - {id: SYSCON.FLEXSPICLKSEL.sel, value: NO_CLOCK}
 - {id: SYSCON.FREQMEREFCLKSEL.sel, value: SYSCON.evtg_out0a}
 - {id: SYSCON.FREQMETARGETCLKSEL.sel, value: SYSCON.evtg_out0a}
@@ -352,7 +351,7 @@ void BOARD_BootClockPLL150M(void)
 
     /*!< Set up dividers */
     CLOCK_SetClkDiv(kCLOCK_DivAhbClk, 1U);           /*!< Set AHBCLKDIV divider to value 1 */
-    CLOCK_SetClkDiv(kCLOCK_DivFlexcom2Clk, 30U);           /*!< Set FLEXCOMM2CLKDIV divider to value 30 */
+    CLOCK_SetClkDiv(kCLOCK_DivFlexcom2Clk, 120U);           /*!< Set FLEXCOMM2CLKDIV divider to value 120 */
 
     /* Set SystemCoreClock variable */
     SystemCoreClock = BOARD_BOOTCLOCKPLL150M_CORE_CLOCK;
@@ -378,14 +377,13 @@ outputs:
 - {id: trng_clock.outFreq, value: 48 MHz}
 settings:
 - {id: PLL1_Mode, value: Normal}
-- {id: RunPowerMode, value: SD}
+- {id: RunPowerMode, value: OD}
 - {id: SCGMode, value: PLL1}
 - {id: SCG.PLL1M_MULT.scale, value: '100', locked: true}
 - {id: SCG.PLL1_NDIV.scale, value: '6', locked: true}
 - {id: SCG.PLL1_PDIV.scale, value: '4', locked: true}
 - {id: SCG.SCSSEL.sel, value: SCG.PLL1_CLK}
 - {id: SCG_FIRCCSR_FIRCEN_CFG, value: Disabled}
-- {id: SCG_SOSCCSR_ERFES_SEL, value: CryOsc}
 - {id: SCG_SOSCCSR_SOSCEN_CFG, value: Enabled}
 - {id: SYSCON.FREQMEREFCLKSEL.sel, value: SYSCON.evtg_out0a}
 - {id: SYSCON.FREQMETARGETCLKSEL.sel, value: SYSCON.evtg_out0a}
@@ -407,28 +405,28 @@ void BOARD_BootClockPLL100M(void)
     /* FRO OSC setup - begin, attach FRO12M to MainClock for safety switching */
     CLOCK_AttachClk(kFRO12M_to_MAIN_CLK);              /*!< Switch to FRO 12M first to ensure we can change the clock setting */
 
-    /* Set the DCDC VDD regulator to 1.1 V voltage level */
+    /* Set the DCDC VDD regulator to 1.2 V voltage level */
     spc_active_mode_dcdc_option_t dcdcOpt = {
-      .DCDCVoltage       = kSPC_DCDC_NormalVoltage,
+      .DCDCVoltage       = kSPC_DCDC_OverdriveVoltage,
       .DCDCDriveStrength = kSPC_DCDC_NormalDriveStrength,
     };
     SPC_SetActiveModeDCDCRegulatorConfig(SPC0, &dcdcOpt);
-    /* Set the LDO_CORE VDD regulator to 1.1 V voltage level */
+    /* Set the LDO_CORE VDD regulator to 1.2 V voltage level */
     spc_active_mode_core_ldo_option_t ldoOpt = {
-      .CoreLDOVoltage       = kSPC_CoreLDO_NormalVoltage,
+      .CoreLDOVoltage       = kSPC_CoreLDO_OverDriveVoltage,
       .CoreLDODriveStrength = kSPC_CoreLDO_NormalDriveStrength,
     };
     SPC_SetActiveModeCoreLDORegulatorConfig(SPC0, &ldoOpt);
-    /* Configure Flash wait-states to support 1.1V voltage level and 100000000Hz frequency */;
+    /* Configure Flash wait-states to support 1.2V voltage level and 100000000Hz frequency */;
     FMU0->FCTRL = (FMU0->FCTRL & ~((uint32_t)FMU_FCTRL_RWSC_MASK)) | (FMU_FCTRL_RWSC(0x2U));
-    /* Specifies the 1.1V operating voltage for the SRAM's read/write timing margin */
+    /* Specifies the 1.2V operating voltage for the SRAM's read/write timing margin */
     spc_sram_voltage_config_t sramCfg = {
-      .operateVoltage       = kSPC_sramOperateAt1P1V,
+      .operateVoltage       = kSPC_sramOperateAt1P2V,
       .requestVoltageUpdate = true,
     };
     SPC_SetSRAMOperateVoltage(SPC0, &sramCfg);
 
-    CLOCK_SetupExtClocking(24000000U);
+    CLOCK_SetupExtRefClocking(24000000U);
     CLOCK_SetSysOscMonitorMode(kSCG_SysOscMonitorDisable);    /* System OSC Clock Monitor is disabled */
 
     SCG0->SIRCCSR |= SCG_SIRCCSR_SIRC_CLK_PERIPH_EN_MASK; 

@@ -10,28 +10,10 @@
  * Included files
  **********************************************************************************************************************/
 #include "fsl_common.h"
-#include "fsl_lpi2c.h"
 
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
-
-/***********************************************************************************************************************
- * Definitions
- **********************************************************************************************************************/
-/* Definitions for BOARD_InitPeripherals functional group */
-/* BOARD_InitPeripherals defines for LP_FLEXCOMM2 */
-/* Definition of peripheral ID */
-#define LP_FLEXCOMM2_PERIPHERAL LPI2C2
-/* Definition of peripheral base address */
-#define LP_FLEXCOMM2_PERIPHERAL_BASE LPI2C2_BASE
-/* Definition of the clock source frequency */
-#define LP_FLEXCOMM2_CLOCK_SOURCE 400000UL
-
-/***********************************************************************************************************************
- * Global variables
- **********************************************************************************************************************/
-extern const lpi2c_master_config_t LP_FLEXCOMM2_masterConfig;
 
 /***********************************************************************************************************************
  * Initialization functions
