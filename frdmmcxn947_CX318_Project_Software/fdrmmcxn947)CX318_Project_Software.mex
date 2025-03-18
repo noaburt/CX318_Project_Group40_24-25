@@ -363,7 +363,7 @@
                <clock_outputs>
                   <clock_output id="CLK_144M_clock.outFreq" value="144 MHz" locked="false" accuracy=""/>
                   <clock_output id="CLK_48M_clock.outFreq" value="48 MHz" locked="false" accuracy=""/>
-                  <clock_output id="FLEXCOMM2_clock.outFreq" value="400 kHz" locked="true" accuracy="0.001"/>
+                  <clock_output id="FLEXCOMM2_clock.outFreq" value="12 MHz" locked="true" accuracy="0.001"/>
                   <clock_output id="FRO_12M_clock.outFreq" value="12 MHz" locked="false" accuracy=""/>
                   <clock_output id="FRO_HF_clock.outFreq" value="48 MHz" locked="false" accuracy=""/>
                   <clock_output id="MAIN_clock.outFreq" value="150 MHz" locked="false" accuracy=""/>
@@ -383,7 +383,6 @@
                   <setting id="SCG.PLL0_NDIV.scale" value="8" locked="true"/>
                   <setting id="SCG.SCSSEL.sel" value="SCG.PLL0_CLK" locked="false"/>
                   <setting id="SYSCON.FCCLKSEL2.sel" value="SCG.FRO_12M" locked="false"/>
-                  <setting id="SYSCON.FLEXCOMM2CLKDIV.scale" value="30" locked="false"/>
                   <setting id="SYSCON.FLEXSPICLKSEL.sel" value="NO_CLOCK" locked="false"/>
                   <setting id="SYSCON.FREQMEREFCLKSEL.sel" value="SYSCON.evtg_out0a" locked="false"/>
                   <setting id="SYSCON.FREQMETARGETCLKSEL.sel" value="SYSCON.evtg_out0a" locked="false"/>

@@ -48,6 +48,8 @@ void check_error(status_t result, char* occurrence) {
 	PRINTF("PROGRAM FAILED AT: %s with %d\r\n", occurrence, result);
 
 	while (1);
+
+	exit;
 }
 
 /*!
