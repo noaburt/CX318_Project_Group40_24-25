@@ -42,7 +42,7 @@ status_t MAX_Start(void) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x00, 1, REG_INTR_ENABLE_2);
+	result = MAX_Send(0x00, 1, REG_INTR_ENABLE_2);
 	if (result != kStatus_Success) {
 		return result;
 	}
