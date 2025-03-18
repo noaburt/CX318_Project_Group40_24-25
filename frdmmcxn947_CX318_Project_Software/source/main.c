@@ -35,7 +35,7 @@ int32_t spo2; 					// SPo2 value
 int8_t spo2_valid; 				// SPo2 calculation validity
 int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
-uint8_t dummy[2];					// General 'dummy' variable
+uint8_t dummy;					// General 'dummy' variable
 
 /*******************************************************************************
  * Code
@@ -87,19 +87,17 @@ int main(void)
 	check_error(MAX_Reset(), "Max Reset");
 
     /* Reading REG_INTR_STATUS_1 clears interrupts */
-	check_error(MAX_Read(&dummy[0], REG_INTR_STATUS_1), "Max Read INTR");
+	check_error(MAX_Read(&dummy, REG_INTR_STATUS_1), "Max Read INTR");
 
     /* Set configuration */
 	check_error(MAX_Start(), "Max Start");
-
-	MAX_Read(&dummy[1], REG_REV_ID);
 
 	/* Prepare for reading data */
 	brightness = 0;
 	led_min = 0x3FFFF;
 	led_max = 0;
 
-	/* Buffer length stores 5 seconds of samples */
+	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
 
 	/* Read the first 500 samples and determine signal range */
@@ -113,7 +111,7 @@ int main(void)
 		if (red_buffer[i] < led_min) { led_min = red_buffer[i]; }
 		if (red_buffer[i] > led_max) { led_max = red_buffer[i]; }
 
-		PRINTF("red = %d, ir = %d\r\n", red_buffer[i], ir_led_buffer[i]);
+		//PRINTF("red = %d, ir = %d\r\n", red_buffer[i], ir_led_buffer[i]);
 	}
 
 	prev_data = red_buffer[i];

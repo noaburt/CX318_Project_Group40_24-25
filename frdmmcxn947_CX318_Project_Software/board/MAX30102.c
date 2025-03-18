@@ -39,7 +39,7 @@ status_t MAX_Start(void) {
 
 	status_t result;
 
-	uint8_t txBuffer[11] = {0xC0, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x03, 0x27, 0x32, 0x32, 0x7F};
+	uint8_t txBuffer[11] = {0xC0, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x03, 0x27, 0x24, 0x24, 0x7F};
 
 	result = MAX_Send(&txBuffer[0], 1, REG_INTR_ENABLE_1); // INTR setting
 	if(result != kStatus_Success) {
@@ -66,7 +66,7 @@ status_t MAX_Start(void) {
 		return result;
 	}
 
-	result = MAX_Send(&txBuffer[5], 1, REG_FIFO_CONFIG); //sample avg = 32, fifo rollover=false, fifo almost full = 32
+	result = MAX_Send(&txBuffer[5], 1, REG_FIFO_CONFIG); //sample avg = 1, fifo rollover=false, fifo almost full = 17
 	if(result != kStatus_Success) {
 		return result;
 	}
@@ -81,12 +81,12 @@ status_t MAX_Start(void) {
 		return result;
 	}
 
-	result = MAX_Send(&txBuffer[8], 1, REG_LED1_PA);  //Choose value for ~ 10mA for LED1
+	result = MAX_Send(&txBuffer[8], 1, REG_LED1_PA);  //Choose value for ~ 7mA for LED1
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send(&txBuffer[9], 1, REG_LED2_PA);  // Choose value for ~ 10mA for LED2
+	result = MAX_Send(&txBuffer[9], 1, REG_LED2_PA);  // Choose value for ~ 7mA for LED2
 	if(result != kStatus_Success) {
 		return result;
 	}
@@ -205,7 +205,7 @@ status_t MAX_Read_FIFO(uint32_t* led_ptr, uint32_t* ir_ptr) {
 
 	uint32_t tmp;
 	uint8_t clear_stat;
-	uint8_t i2c_data[6];
+	char i2c_data[6];
 	uint8_t* i2c_data_ptr = i2c_data;
 
 	*led_ptr = 0;
