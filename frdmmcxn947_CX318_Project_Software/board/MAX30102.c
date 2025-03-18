@@ -206,6 +206,7 @@ status_t MAX_Read_FIFO(uint32_t* led_ptr, uint32_t* ir_ptr) {
 	uint32_t tmp;
 	uint8_t clear_stat;
 	uint8_t i2c_data[6];
+	uint8_t* i2c_data_ptr = i2c_data;
 
 	*led_ptr = 0;
 	*ir_ptr = 0;
@@ -220,7 +221,7 @@ status_t MAX_Read_FIFO(uint32_t* led_ptr, uint32_t* ir_ptr) {
 	transfer.direction = kLPI2C_Read;
 	transfer.subaddress = REG_FIFO_DATA;
 	transfer.subaddressSize = 1;
-	transfer.data = &i2c_data;
+	transfer.data = i2c_data_ptr;
 	transfer.dataSize = 6;
 
 	result = LPI2C_MasterTransferBlocking(MAX_I2C, &transfer);

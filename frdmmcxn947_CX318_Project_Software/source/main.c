@@ -70,8 +70,6 @@ int main(void)
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
 
-    SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
-
     /* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
 	int i;
@@ -81,6 +79,9 @@ int main(void)
 	status_t result;
 
 	MAX_Init();
+
+    SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
+
 	check_error(MAX_Reset(), "Max Reset");
 
     /* Reading REG_INTR_STATUS_1 clears interrupts */
@@ -89,7 +90,7 @@ int main(void)
     /* Set configuration */
 	check_error(MAX_Start(), "Max Start");
 
-	MAX_Read(&dummy[1], REG_PART_ID);
+	MAX_Read(&dummy[1], REG_REV_ID);
 
 	/* Prepare for reading data */
 	brightness = 0;
@@ -110,7 +111,7 @@ int main(void)
 		if (red_buffer[i] < led_min) { led_min = red_buffer[i]; }
 		if (red_buffer[i] > led_max) { led_max = red_buffer[i]; }
 
-		//PRINTF("red = %d, ir = %d\r\n", red_buffer[i], ir_led_buffer[i]);
+		PRINTF("red = %d, ir = %d\r\n", red_buffer[i], ir_led_buffer[i]);
 	}
 
 	prev_data = red_buffer[i];

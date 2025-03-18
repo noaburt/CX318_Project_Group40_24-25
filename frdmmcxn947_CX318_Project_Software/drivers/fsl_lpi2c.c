@@ -6,6 +6,8 @@
  */
 
 #include "fsl_lpi2c.h"
+#include "fsl_debug_console.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -1007,12 +1009,14 @@ status_t LPI2C_MasterTransferBlocking(LPI2C_Type *base, lpi2c_master_transfer_t 
             {
                 /* Send Data. */
                 result = LPI2C_MasterSend(base, transfer->data, transfer->dataSize);
+                PRINTF("SEND RESULT: %d\r\n", result);
             }
 
             /* Receive Data. */
             if ((transfer->direction == kLPI2C_Read) && (transfer->dataSize > 0U))
             {
                 result = LPI2C_MasterReceive(base, transfer->data, transfer->dataSize);
+                PRINTF("RECEIVE RESULT: %d\r\n", result);
             }
 
             if (kStatus_Success == result)
@@ -1020,6 +1024,7 @@ status_t LPI2C_MasterTransferBlocking(LPI2C_Type *base, lpi2c_master_transfer_t 
                 if ((transfer->flags & (uint32_t)kLPI2C_TransferNoStopFlag) == 0U)
                 {
                     result = LPI2C_MasterStop(base);
+                    PRINTF("SUCCESS STOP RESULT: %d\r\n", result);
                 }
             }
         }
@@ -1031,6 +1036,7 @@ status_t LPI2C_MasterTransferBlocking(LPI2C_Type *base, lpi2c_master_transfer_t 
                 ret = LPI2C_MasterStop(base);
                 if(kStatus_Success != ret)
                 {
+                	PRINTF("FAIL STOP RESULT: %d\r\n", ret);
                     result = ret;
                 }
             }
