@@ -29,7 +29,9 @@ void MAX_Init(void) {
 /* Set the reset bit in REG_MODE_CONFIG address to reset sensor */
 status_t MAX_Reset(void) {
 
-	return MAX_Send((uint8_t*) 0x40, 1, REG_MODE_CONFIG);
+	uint8_t txBuffer = 0x40;
+
+	return MAX_Send(&txBuffer, 1, REG_MODE_CONFIG);
 }
 
 /* Set the MAX30102 configurations */
@@ -37,57 +39,59 @@ status_t MAX_Start(void) {
 
 	status_t result;
 
-	result = MAX_Send((uint8_t*) 0xc0, 1, REG_INTR_ENABLE_1); // INTR setting
+	uint8_t txBuffer[11] = {0xC0, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x03, 0x27, 0x24, 0x24, 0x7F};
+
+	result = MAX_Send(&txBuffer[0], 1, REG_INTR_ENABLE_1); // INTR setting
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send(0x00, 1, REG_INTR_ENABLE_2);
+	result = MAX_Send(&txBuffer[1], 1, REG_INTR_ENABLE_2);
 	if (result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x00, 1, REG_FIFO_WR_PTR); //FIFO_WR_PTR[4:0]
+	result = MAX_Send(&txBuffer[2], 1, REG_FIFO_WR_PTR); //FIFO_WR_PTR[4:0]
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x00, 1, REG_OVF_COUNTER); //OVF_COUNTER[4:0]
+	result = MAX_Send(&txBuffer[3], 1, REG_OVF_COUNTER); //OVF_COUNTER[4:0]
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x00, 1, REG_FIFO_RD_PTR); //FIFO_RD_PTR[4:0]
+	result = MAX_Send(&txBuffer[4], 1, REG_FIFO_RD_PTR); //FIFO_RD_PTR[4:0]
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x0f, 1, REG_FIFO_CONFIG); //sample avg = 1, fifo rollover=false, fifo almost full = 17
+	result = MAX_Send(&txBuffer[5], 1, REG_FIFO_CONFIG); //sample avg = 1, fifo rollover=false, fifo almost full = 17
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x03, 1, REG_MODE_CONFIG);  //0x02 for Red only, 0x03 for SpO2 mode 0x07 multimode LED
+	result = MAX_Send(&txBuffer[6], 1, REG_MODE_CONFIG);  //0x02 for Red only, 0x03 for SpO2 mode 0x07 multimode LED
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x27, 1, REG_SPO2_CONFIG); // SPO2_ADC range = 4096nA, SPO2 sample rate (100 Hz), LED pulseWidth (400uS)
+	result = MAX_Send(&txBuffer[7], 1, REG_SPO2_CONFIG); // SPO2_ADC range = 4096nA, SPO2 sample rate (100 Hz), LED pulseWidth (400uS)
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x24, 1, REG_LED1_PA);  //Choose value for ~ 7mA for LED1
+	result = MAX_Send(&txBuffer[8], 1, REG_LED1_PA);  //Choose value for ~ 7mA for LED1
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x24, 1, REG_LED2_PA);  // Choose value for ~ 7mA for LED2
+	result = MAX_Send(&txBuffer[9], 1, REG_LED2_PA);  // Choose value for ~ 7mA for LED2
 	if(result != kStatus_Success) {
 		return result;
 	}
 
-	result = MAX_Send((uint8_t*) 0x7f, 1, REG_PILOT_PA);  // Choose value for ~ 25mA for Pilot LED
+	result = MAX_Send(&txBuffer[10], 1, REG_PILOT_PA);  // Choose value for ~ 25mA for Pilot LED
 
 	return result;
 }
@@ -97,7 +101,20 @@ status_t MAX_Send(uint8_t* buffer, uint16_t size, uint8_t CD) {
 
 	status_t result;
 
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
+	lpi2c_master_transfer_t transfer;
+	transfer.flags = 0;
+	transfer.slaveAddress = MAX_ADDRESS;
+	transfer.direction = kLPI2C_Write;
+	transfer.subaddress = CD;
+	transfer.subaddressSize = 1;
+	transfer.data = buffer;
+	transfer.dataSize = size;
+
+	result = LPI2C_MasterTransferBlocking(MAX_I2C, &transfer);
+	return result;
+
+
+
 
 	result = LPI2C_MasterStart(MAX_I2C, MAX_ADDRESS, kLPI2C_Write);
 	if (result != kStatus_Success) {
@@ -105,23 +122,17 @@ status_t MAX_Send(uint8_t* buffer, uint16_t size, uint8_t CD) {
 		//return result;
 	}
 
-    SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
-
 	result = LPI2C_MasterSend(MAX_I2C, &CD, 1);
 	if (result != kStatus_Success) {
 		PRINTF("SEND SEND ADDR: %d\r\n", result);
 		//return result;
 	}
 
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
-
 	result = LPI2C_MasterSend(MAX_I2C, buffer, size);
 	if (result != kStatus_Success) {
 		PRINTF("SEND SEND DATA: %d\r\n", result);
 		//return result;
 	}
-
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
 
 	result = LPI2C_MasterStop(MAX_I2C);
 	if (result != kStatus_Success) {
@@ -137,7 +148,19 @@ status_t MAX_Read(uint8_t* buffer, uint8_t CD) {
 
 	status_t result;
 
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
+	lpi2c_master_transfer_t transfer;
+	transfer.flags = 0;
+	transfer.slaveAddress = MAX_ADDRESS;
+	transfer.direction = kLPI2C_Read;
+	transfer.subaddress = CD;
+	transfer.subaddressSize = 1;
+	transfer.data = buffer;
+	transfer.dataSize = 1;
+
+	result = LPI2C_MasterTransferBlocking(MAX_I2C, &transfer);
+	return result;
+
+
 
 	result = LPI2C_MasterStart(MAX_I2C, MAX_ADDRESS, kLPI2C_Write);
 	if (result != kStatus_Success) {
@@ -145,23 +168,17 @@ status_t MAX_Read(uint8_t* buffer, uint8_t CD) {
 		//return result;
 	}
 
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
-
 	result = LPI2C_MasterSend(MAX_I2C, &CD, 1);
 	if (result != kStatus_Success) {
 		PRINTF("READ SEND: %d\r\n", result);
 		//return result;
 	}
 
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
-
 	result = LPI2C_MasterRepeatedStart(MAX_I2C, MAX_ADDRESS, kLPI2C_Read);
 	if (result != kStatus_Success) {
 		PRINTF("READ REPEAT SEND: %d\r\n", result);
 		//return result;
 	}
-
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
 
 	char ch_read_data;
 
@@ -172,8 +189,6 @@ status_t MAX_Read(uint8_t* buffer, uint8_t CD) {
 		PRINTF("READ READ: %d\r\n", result);
 		//return result;
 	}
-
-	SDK_DelayAtLeastUs(10000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
 
 	result = LPI2C_MasterStop(MAX_I2C);
 	if (result != kStatus_Success) {
