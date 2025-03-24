@@ -21,9 +21,21 @@
  ******************************************************************************/
 #define MAX_BRIGHTNESS 255
 
+#define SCTIMER_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
+#define SCTIMER_OUT kSCTIMER_Out_4
+
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
+
+void MAIN_CheckErr(status_t result, char* occurrence);
+
+void MAX_Begin();
+
+void PWM_Delay();
+void PWM_Init();
+void PWM_Handler();
+
 
 /*******************************************************************************
  * Variables
@@ -37,12 +49,17 @@ int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
+uint8_t sctimerIsrFlag = 0U;
+uint8_t brightnessUp = 1U;
+uint8_t updatedDutycycle = 10U;
+uint32_t eventNumberOutput;
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
 
 /* Return from main when error without ACTUALLY returning */
-void check_error(status_t result, char* occurrence) {
+void MAIN_CheckErr(status_t result, char* occurrence) {
 
 	if (result == kStatus_Success) { return; }
 	PRINTF("PROGRAM FAILED AT: %s with %d\r\n", occurrence, result);
@@ -50,6 +67,89 @@ void check_error(status_t result, char* occurrence) {
 	while (1);
 
 	exit;
+}
+
+/* Setup and start MAX30102 */
+void MAX_Begin() {
+	MAX_Init();
+
+	SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
+
+	MAIN_CheckErr(MAX_Reset(), "Max Reset");
+
+	/* Reading REG_INTR_STATUS_1 clears interrupts */
+	MAIN_CheckErr(MAX_Read(&dummy, REG_INTR_STATUS_1), "Max Read INTR");
+
+	/* Set configuration */
+	MAIN_CheckErr(MAX_Start(), "Max Start");
+}
+
+void PWM_Delay() {
+	volatile uint32_t i = 0U;
+
+	for (i = 0U; i < 80000U; ++i)
+	{
+		__asm("NOP"); /* delay */
+	}
+}
+
+/* Setup and initalise PWM */
+void PWM_Init() {
+	SCTIMER_GetDefaultConfig(&sctimerInfo);
+
+	/* Initialize SCTimer module */
+	SCTIMER_Init(SCT0_PERIPHERAL, &sctimerInfo);
+
+	/* Configure PWM params with frequency 24kHZ from output */
+	pwmParam.output           = DEMO_SCTIMER_OUT;
+	pwmParam.level            = kSCTIMER_HighTrue;
+	pwmParam.dutyCyclePercent = updatedDutycycle;
+	if (SCTIMER_SetupPwm(SCT0, &pwmParam, kSCTIMER_CenterAlignedPwm, 24000U, sctimerClock, &eventNumberOutput) ==
+		kStatus_Fail)
+	{
+		return -1;
+	}
+
+	/* Enable interrupt flag for event associated with out 4, we use the interrupt to update dutycycle */
+	SCTIMER_EnableInterrupts(SCT0, (1 << eventNumberOutput));
+
+	/* Receive notification when event is triggered */
+	SCTIMER_SetCallback(SCT0, SCTIMER_LED_HANDLER, eventNumberOutput);
+
+	/* Enable at the NVIC */
+	EnableIRQ(SCT0_IRQn);
+}
+
+
+/* The interrupt callback function is used to update the PWM dutycycle */
+void PWM_Handler() {
+    sctimerIsrFlag = true;
+
+    if (brightnessUp)
+    {
+        /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
+         * as channel interrupt will not be set for 100%
+         */
+        if (++updatedDutycycle >= 99U)
+        {
+            updatedDutycycle = 99U;
+            brightnessUp     = false;
+        }
+    }
+    else
+    {
+        /* Decrease duty cycle until it reach limited value */
+        if (--updatedDutycycle == 1U)
+        {
+            brightnessUp = true;
+        }
+    }
+
+    if (SCTIMER_GetStatusFlags(SCT0) & (1 << eventNumberOutput))
+    {
+        /* Clear interrupt flag.*/
+        SCTIMER_ClearStatusFlags(SCT0, (1 << eventNumberOutput));
+    }
 }
 
 /*!
@@ -72,6 +172,8 @@ int main(void)
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
 
+    PWM_Init();
+
     /* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
 	int i;
@@ -79,18 +181,6 @@ int main(void)
 	float tmp;
 
 	status_t result;
-
-	MAX_Init();
-
-    SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
-
-	check_error(MAX_Reset(), "Max Reset");
-
-    /* Reading REG_INTR_STATUS_1 clears interrupts */
-	check_error(MAX_Read(&dummy, REG_INTR_STATUS_1), "Max Read INTR");
-
-    /* Set configuration */
-	check_error(MAX_Start(), "Max Start");
 
 	/* Prepare for reading data */
 	brightness = 0;
@@ -105,7 +195,7 @@ int main(void)
 
 		while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1);
 
-		check_error(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
+		MAIN_CheckErr(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
 
 		/* Update signal mix & max */
 		if (red_buffer[i] < led_min) { led_min = red_buffer[i]; }
@@ -145,7 +235,7 @@ int main(void)
 
 			while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1) {}
 
-			check_error(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
+			MAIN_CheckErr(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
 
 			if (red_buffer[i] > prev_data) {
 				tmp = red_buffer[i] - prev_data;
