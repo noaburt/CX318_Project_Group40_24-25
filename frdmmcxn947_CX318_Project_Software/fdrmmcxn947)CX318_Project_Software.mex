@@ -509,6 +509,11 @@
                   <data type="Version" maxValue="2.5.99">2.4.0</data>
                </feature>
             </dependency>
+            <dependency resourceType="Tool" resourceId="Clocks" description="The Clocks tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
+               <feature name="enabled" evaluation="equal">
+                  <data>true</data>
+               </feature>
+            </dependency>
          </dependencies>
          <generated_project_files>
             <file path="board/peripherals.c" update_enabled="true"/>
@@ -536,9 +541,7 @@
                <instances>
                   <instance name="NVIC" uuid="2923cb66-461a-4675-a071-d75ca197f968" type="nvic" type_id="nvic" mode="general" peripheral="NVIC" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
                      <config_set name="nvic">
-                        <array name="interrupt_table">
-                           <struct name="0"/>
-                        </array>
+                        <array name="interrupt_table"/>
                         <array name="interrupts"/>
                      </config_set>
                   </instance>
@@ -562,7 +565,7 @@
                               <selected/>
                            </set>
                         </struct>
-                        <setting name="enableIRQ" value="true"/>
+                        <setting name="enableIRQ" value="false"/>
                         <struct name="interrupt">
                            <setting name="IRQn" value="SCT0_IRQn"/>
                            <setting name="enable_interrrupt" value="enabled"/>
@@ -570,7 +573,7 @@
                            <setting name="priority" value="0"/>
                            <setting name="enable_custom_name" value="false"/>
                         </struct>
-                        <setting name="enableLTimer" value="false"/>
+                        <setting name="enableLTimer" value="true"/>
                         <setting name="enableHTimer" value="false"/>
                         <array name="pwms">
                            <struct name="0">
@@ -580,7 +583,7 @@
                            </struct>
                         </array>
                         <setting name="pwmMode" value="kSCTIMER_EdgeAlignedPwm"/>
-                        <setting name="pwmFrequency" value="24000"/>
+                        <setting name="pwmFrequency" value="1"/>
                         <array name="events"/>
                         <array name="states">
                            <struct name="0">

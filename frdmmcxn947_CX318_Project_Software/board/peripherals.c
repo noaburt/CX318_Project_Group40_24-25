@@ -68,8 +68,7 @@ instance:
 - peripheral: 'NVIC'
 - config_sets:
   - nvic:
-    - interrupt_table:
-      - 0: []
+    - interrupt_table: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -106,14 +105,14 @@ instance:
       - prescale_h: '1'
       - outInitState: ''
       - inputsync: ''
-    - enableIRQ: 'true'
+    - enableIRQ: 'false'
     - interrupt:
       - IRQn: 'SCT0_IRQn'
       - enable_interrrupt: 'enabled'
       - enable_priority: 'false'
       - priority: '0'
       - enable_custom_name: 'false'
-    - enableLTimer: 'false'
+    - enableLTimer: 'true'
     - enableHTimer: 'false'
     - pwms:
       - 0:
@@ -121,7 +120,7 @@ instance:
         - level: 'kSCTIMER_HighTrue'
         - dutyCyclePercent: '50'
     - pwmMode: 'kSCTIMER_EdgeAlignedPwm'
-    - pwmFrequency: '24000'
+    - pwmFrequency: '1'
     - events: []
     - states:
       - 0:
@@ -151,9 +150,8 @@ uint32_t SCT0_pwmEvent[1];
 static void SCT0_init(void) {
   SCTIMER_Init(SCT0_PERIPHERAL, &SCT0_initConfig);
   /* Initialization of state 0 */
-  SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_EdgeAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
-  /* Enable interrupt SCT0_IRQN request in the NVIC */
-  EnableIRQ(SCT0_IRQN);
+  SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_EdgeAlignedPwm, 1U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
+  SCTIMER_StartTimer(SCT0_PERIPHERAL, kSCTIMER_Counter_U);
 }
 
 /***********************************************************************************************************************

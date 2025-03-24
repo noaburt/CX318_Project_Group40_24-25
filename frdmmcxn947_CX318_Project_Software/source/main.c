@@ -153,6 +153,8 @@ int main(void)
 
 	BOARD_InitPeripherals();
 
+	MAX_Begin();
+
     /* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
 	int i;
@@ -212,7 +214,7 @@ int main(void)
 		}
 
 
-		/* Continuously sample, hr & sp02 calculated every 1s*/
+		/* Continuously sample, hr & sp02 calculated every 1s */
 		led_min = 0x3FFFF;
 		led_max = 0;
 
