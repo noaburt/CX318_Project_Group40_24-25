@@ -68,7 +68,8 @@ instance:
 - peripheral: 'NVIC'
 - config_sets:
   - nvic:
-    - interrupt_table: []
+    - interrupt_table:
+      - 0: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -105,7 +106,7 @@ instance:
       - prescale_h: '1'
       - outInitState: ''
       - inputsync: ''
-    - enableIRQ: 'false'
+    - enableIRQ: 'true'
     - interrupt:
       - IRQn: 'SCT0_IRQn'
       - enable_interrrupt: 'enabled'
@@ -151,6 +152,8 @@ static void SCT0_init(void) {
   SCTIMER_Init(SCT0_PERIPHERAL, &SCT0_initConfig);
   /* Initialization of state 0 */
   SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_EdgeAlignedPwm, 1U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
+  /* Enable interrupt SCT0_IRQN request in the NVIC */
+  EnableIRQ(SCT0_IRQN);
   SCTIMER_StartTimer(SCT0_PERIPHERAL, kSCTIMER_Counter_U);
 }
 

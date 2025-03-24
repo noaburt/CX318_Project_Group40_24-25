@@ -51,7 +51,6 @@ uint8_t dummy;					// General 'dummy' variable
 uint8_t sctimerIsrFlag = 0U;
 uint8_t brightnessUp = 1U;
 uint8_t updatedDutycycle = 10U;
-uint32_t eventNumberOutput;
 
 /*******************************************************************************
  * Code
@@ -96,6 +95,7 @@ void PWM_Delay() {
 void SCT0_IRQHANDLER(void) {
   /* Get status flags */
   uint32_t status_flags = SCTIMER_GetStatusFlags(SCT0_PERIPHERAL);
+  PRINTF("INTERRUPT");
 
   /* Place your interrupt code here */
   sctimerIsrFlag = 1U;
@@ -196,21 +196,20 @@ int main(void)
 
 	while (1) {
 		/* Use interrupt to update the PWM dutycycle on output */
-		if (sctimerIsrFlag == 1)
-		{
+
+		if (sctimerIsrFlag == 1U) {
 			/* Disable interrupt to retain current dutycycle for a few seconds */
-			SCTIMER_DisableInterrupts(SCT0, (1 << eventNumberOutput));
+			SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
 			sctimerIsrFlag = 0U;
 
 			/* Update PWM duty cycle */
-			SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, eventNumberOutput);
+			SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
 
 			/* Delay to view the updated PWM dutycycle */
 			PWM_Delay();
 
-			/* Enable interrupt flag to update PWM dutycycle */
-			SCTIMER_EnableInterrupts(SCT0, (1 << eventNumberOutput));
+			SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 		}
 
 
@@ -256,10 +255,10 @@ int main(void)
 
 			// WRITE TO LEDs
 
-			PRINTF(
-					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
-					red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
-			);
+//			PRINTF(
+//					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
+//					red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
+//			);
 
 			maxim_heart_rate_and_oxygen_saturation(
 					ir_led_buffer, ir_buffer_len, red_buffer,
