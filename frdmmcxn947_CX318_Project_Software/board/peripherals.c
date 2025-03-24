@@ -68,7 +68,8 @@ instance:
 - peripheral: 'NVIC'
 - config_sets:
   - nvic:
-    - interrupt_table: []
+    - interrupt_table:
+      - 0: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -78,11 +79,90 @@ static void NVIC_init(void) {
 } */
 
 /***********************************************************************************************************************
+ * SCT0 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'SCT0'
+- type: 'sctimer'
+- mode: 'basic'
+- custom_name_enabled: 'false'
+- type_id: 'sctimer_2.4.0'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'SCT0'
+- config_sets:
+  - main:
+    - config:
+      - clockMode: 'kSCTIMER_System_ClockMode'
+      - clockSource: 'SynchronousFunctionClock'
+      - clockSourceFreq: 'GetFreq'
+      - SCTInputClockSourceFreq: 'custom:0'
+      - clockSelect: 'kSCTIMER_Clock_On_Rise_Input_0'
+      - enableCounterUnify: 'true'
+      - enableBidirection_l: 'false'
+      - enableBidirection_h: 'false'
+      - prescale_l: '1'
+      - prescale_h: '1'
+      - outInitState: ''
+      - inputsync: ''
+    - enableIRQ: 'true'
+    - interrupt:
+      - IRQn: 'SCT0_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '0'
+      - enable_custom_name: 'false'
+    - enableLTimer: 'false'
+    - enableHTimer: 'false'
+    - pwms:
+      - 0:
+        - output: 'kSCTIMER_Out_4'
+        - level: 'kSCTIMER_HighTrue'
+        - dutyCyclePercent: '50'
+    - pwmMode: 'kSCTIMER_EdgeAlignedPwm'
+    - pwmFrequency: '24000'
+    - events: []
+    - states:
+      - 0:
+        - pwms: 'pwm0'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+const sctimer_config_t SCT0_initConfig = {
+  .enableCounterUnify = true,
+  .clockMode = kSCTIMER_System_ClockMode,
+  .clockSelect = kSCTIMER_Clock_On_Rise_Input_0,
+  .enableBidirection_l = false,
+  .enableBidirection_h = false,
+  .prescale_l = 0U,
+  .prescale_h = 0U,
+  .outInitState = 0U,
+  .inputsync = 0U
+};
+const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[1] = {
+  {
+    .output = kSCTIMER_Out_4,
+    .level = kSCTIMER_HighTrue,
+    .dutyCyclePercent = 50U
+  }
+};
+uint32_t SCT0_pwmEvent[1];
+
+static void SCT0_init(void) {
+  SCTIMER_Init(SCT0_PERIPHERAL, &SCT0_initConfig);
+  /* Initialization of state 0 */
+  SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_EdgeAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
+  /* Enable interrupt SCT0_IRQN request in the NVIC */
+  EnableIRQ(SCT0_IRQN);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
 {
   /* Initialize components */
+  SCT0_init();
 }
 
 /***********************************************************************************************************************

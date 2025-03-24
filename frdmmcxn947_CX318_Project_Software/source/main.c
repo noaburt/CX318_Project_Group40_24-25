@@ -11,6 +11,7 @@
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 #include "pin_mux.h"
+#include "peripherals.h"
 #include "clock_config.h"
 #include "board.h"
 
@@ -21,7 +22,6 @@
  ******************************************************************************/
 #define MAX_BRIGHTNESS 255
 
-#define SCTIMER_CLK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
 #define SCTIMER_OUT kSCTIMER_Out_4
 
 /*******************************************************************************
@@ -34,7 +34,6 @@ void MAX_Begin();
 
 void PWM_Delay();
 void PWM_Init();
-void PWM_Handler();
 
 
 /*******************************************************************************
@@ -93,64 +92,44 @@ void PWM_Delay() {
 	}
 }
 
-/* Setup and initalise PWM */
-void PWM_Init() {
-	SCTIMER_GetDefaultConfig(&sctimerInfo);
+/* SCT0_IRQn interrupt handler */
+void SCT0_IRQHANDLER(void) {
+  /* Get status flags */
+  uint32_t status_flags = SCTIMER_GetStatusFlags(SCT0_PERIPHERAL);
 
-	/* Initialize SCTimer module */
-	SCTIMER_Init(SCT0_PERIPHERAL, &sctimerInfo);
+  /* Place your interrupt code here */
+  sctimerIsrFlag = 1U;
 
-	/* Configure PWM params with frequency 24kHZ from output */
-	pwmParam.output           = DEMO_SCTIMER_OUT;
-	pwmParam.level            = kSCTIMER_HighTrue;
-	pwmParam.dutyCyclePercent = updatedDutycycle;
-	if (SCTIMER_SetupPwm(SCT0, &pwmParam, kSCTIMER_CenterAlignedPwm, 24000U, sctimerClock, &eventNumberOutput) ==
-		kStatus_Fail)
-	{
-		return -1;
-	}
+  if (brightnessUp == 1U)
+  {
+	  /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
+	   * as channel interrupt will not be set for 100%
+	   */
+	  if (++updatedDutycycle >= 99U)
+	  {
+		  updatedDutycycle = 99U;
+		  brightnessUp     = 0U;
+	  }
+  }
+  else
+  {
+	  /* Decrease duty cycle until it reach limited value */
+	  if (--updatedDutycycle == 1U)
+	  {
+		  brightnessUp = 1U;
+	  }
+  }
 
-	/* Enable interrupt flag for event associated with out 4, we use the interrupt to update dutycycle */
-	SCTIMER_EnableInterrupts(SCT0, (1 << eventNumberOutput));
+  /* Clear status flags */
+  SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
 
-	/* Receive notification when event is triggered */
-	SCTIMER_SetCallback(SCT0, SCTIMER_LED_HANDLER, eventNumberOutput);
-
-	/* Enable at the NVIC */
-	EnableIRQ(SCT0_IRQn);
+  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+     Store immediate overlapping exception return operation might vector to incorrect interrupt. */
+  #if defined __CORTEX_M && (__CORTEX_M == 4U)
+    __DSB();
+  #endif
 }
 
-
-/* The interrupt callback function is used to update the PWM dutycycle */
-void PWM_Handler() {
-    sctimerIsrFlag = true;
-
-    if (brightnessUp)
-    {
-        /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
-         * as channel interrupt will not be set for 100%
-         */
-        if (++updatedDutycycle >= 99U)
-        {
-            updatedDutycycle = 99U;
-            brightnessUp     = false;
-        }
-    }
-    else
-    {
-        /* Decrease duty cycle until it reach limited value */
-        if (--updatedDutycycle == 1U)
-        {
-            brightnessUp = true;
-        }
-    }
-
-    if (SCTIMER_GetStatusFlags(SCT0) & (1 << eventNumberOutput))
-    {
-        /* Clear interrupt flag.*/
-        SCTIMER_ClearStatusFlags(SCT0, (1 << eventNumberOutput));
-    }
-}
 
 /*!
  * @brief Main function
@@ -172,7 +151,7 @@ int main(void)
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
 
-    PWM_Init();
+	BOARD_InitPeripherals();
 
     /* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
@@ -213,9 +192,27 @@ int main(void)
 			&heart_rate, &hr_valid
 	);
 
-	/* Continuously sample, hr & sp02 calculated every 1s*/
 	while (1) {
+		/* Use interrupt to update the PWM dutycycle on output */
+		if (sctimerIsrFlag == 1)
+		{
+			/* Disable interrupt to retain current dutycycle for a few seconds */
+			SCTIMER_DisableInterrupts(SCT0, (1 << eventNumberOutput));
 
+			sctimerIsrFlag = 0U;
+
+			/* Update PWM duty cycle */
+			SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, eventNumberOutput);
+
+			/* Delay to view the updated PWM dutycycle */
+			PWM_Delay();
+
+			/* Enable interrupt flag to update PWM dutycycle */
+			SCTIMER_EnableInterrupts(SCT0, (1 << eventNumberOutput));
+		}
+
+
+		/* Continuously sample, hr & sp02 calculated every 1s*/
 		led_min = 0x3FFFF;
 		led_max = 0;
 
