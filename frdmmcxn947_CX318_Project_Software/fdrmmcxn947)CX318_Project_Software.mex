@@ -509,6 +509,11 @@
                   <data type="Version" maxValue="2.5.99">2.4.0</data>
                </feature>
             </dependency>
+            <dependency resourceType="Tool" resourceId="Clocks" description="The Clocks tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
+               <feature name="enabled" evaluation="equal">
+                  <data>true</data>
+               </feature>
+            </dependency>
          </dependencies>
          <generated_project_files>
             <file path="board/peripherals.c" update_enabled="true"/>
@@ -559,7 +564,12 @@
                               <selected/>
                            </set>
                            <set name="inputsync">
-                              <selected/>
+                              <selected>
+                                 <id>SCTIMER_INPUTSYNC_0_MASK</id>
+                                 <id>SCTIMER_INPUTSYNC_1_MASK</id>
+                                 <id>SCTIMER_INPUTSYNC_2_MASK</id>
+                                 <id>SCTIMER_INPUTSYNC_3_MASK</id>
+                              </selected>
                            </set>
                         </struct>
                         <setting name="enableIRQ" value="true"/>
@@ -579,7 +589,7 @@
                               <setting name="dutyCyclePercent" value="50"/>
                            </struct>
                         </array>
-                        <setting name="pwmMode" value="kSCTIMER_EdgeAlignedPwm"/>
+                        <setting name="pwmMode" value="kSCTIMER_CenterAlignedPwm"/>
                         <setting name="pwmFrequency" value="1"/>
                         <array name="events"/>
                         <array name="states">

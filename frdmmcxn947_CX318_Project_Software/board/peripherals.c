@@ -105,7 +105,7 @@ instance:
       - prescale_l: '1'
       - prescale_h: '1'
       - outInitState: ''
-      - inputsync: ''
+      - inputsync: 'SCTIMER_INPUTSYNC_0_MASK SCTIMER_INPUTSYNC_1_MASK SCTIMER_INPUTSYNC_2_MASK SCTIMER_INPUTSYNC_3_MASK'
     - enableIRQ: 'true'
     - interrupt:
       - IRQn: 'SCT0_IRQn'
@@ -120,7 +120,7 @@ instance:
         - output: 'kSCTIMER_Out_4'
         - level: 'kSCTIMER_HighTrue'
         - dutyCyclePercent: '50'
-    - pwmMode: 'kSCTIMER_EdgeAlignedPwm'
+    - pwmMode: 'kSCTIMER_CenterAlignedPwm'
     - pwmFrequency: '1'
     - events: []
     - states:
@@ -137,7 +137,7 @@ const sctimer_config_t SCT0_initConfig = {
   .prescale_l = 0U,
   .prescale_h = 0U,
   .outInitState = 0U,
-  .inputsync = 0U
+  .inputsync = (uint8_t)(SCT0_INPUTSYNC_0 | SCT0_INPUTSYNC_1 | SCT0_INPUTSYNC_2 | SCT0_INPUTSYNC_3)
 };
 const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[1] = {
   {
@@ -151,7 +151,7 @@ uint32_t SCT0_pwmEvent[1];
 static void SCT0_init(void) {
   SCTIMER_Init(SCT0_PERIPHERAL, &SCT0_initConfig);
   /* Initialization of state 0 */
-  SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_EdgeAlignedPwm, 1U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
+  SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_CenterAlignedPwm, 1U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
   /* Enable interrupt SCT0_IRQN request in the NVIC */
   EnableIRQ(SCT0_IRQN);
   SCTIMER_StartTimer(SCT0_PERIPHERAL, kSCTIMER_Counter_U);

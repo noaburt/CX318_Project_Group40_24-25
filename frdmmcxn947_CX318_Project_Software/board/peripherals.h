@@ -30,6 +30,14 @@ extern "C" {
 #define SCT0_IRQN SCT0_IRQn
 /* SCT0 interrupt handler identifier. */
 #define SCT0_IRQHANDLER SCT0_IRQHandler
+/* Sync input 0 mask */
+#define SCT0_INPUTSYNC_0 (1U << 0U)
+/* Sync input 1 mask */
+#define SCT0_INPUTSYNC_1 (1U << 1U)
+/* Sync input 2 mask */
+#define SCT0_INPUTSYNC_2 (1U << 2U)
+/* Sync input 3 mask */
+#define SCT0_INPUTSYNC_3 (1U << 3U)
 
 /***********************************************************************************************************************
  * Global variables

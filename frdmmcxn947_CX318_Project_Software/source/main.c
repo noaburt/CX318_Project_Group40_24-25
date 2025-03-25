@@ -152,6 +152,11 @@ int main(void)
     BOARD_InitDebugConsole();
 
 	BOARD_InitPeripherals();
+	/* Enable interrupt flag for event associated with out 4, we use the interrupt to update dutycycle */
+	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
+	/* Receive notification when event is triggered */
+	SCTIMER_SetCallback(SCT0, SCT0_IRQHANDLER, SCT0_pwmEvent[0]);
 
 	MAX_Begin();
 
@@ -198,9 +203,6 @@ int main(void)
 		/* Use interrupt to update the PWM dutycycle on output */
 
 		if (sctimerIsrFlag == 1U) {
-			/* Disable interrupt to retain current dutycycle for a few seconds */
-			SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-
 			sctimerIsrFlag = 0U;
 
 			/* Update PWM duty cycle */
@@ -208,8 +210,6 @@ int main(void)
 
 			/* Delay to view the updated PWM dutycycle */
 			PWM_Delay();
-
-			SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 		}
 
 
