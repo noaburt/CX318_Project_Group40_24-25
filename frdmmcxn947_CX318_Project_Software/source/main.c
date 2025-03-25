@@ -95,7 +95,6 @@ void PWM_Delay() {
 void SCT0_IRQHANDLER(void) {
   /* Get status flags */
   uint32_t status_flags = SCTIMER_GetStatusFlags(SCT0_PERIPHERAL);
-  PRINTF("INTERRUPT");
 
   /* Place your interrupt code here */
   sctimerIsrFlag = 1U;
@@ -203,6 +202,9 @@ int main(void)
 		/* Use interrupt to update the PWM dutycycle on output */
 
 		if (sctimerIsrFlag == 1U) {
+			/* Disable interrupt to retain current dutycycle for a few seconds */
+			SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
 			sctimerIsrFlag = 0U;
 
 			/* Update PWM duty cycle */
@@ -210,6 +212,9 @@ int main(void)
 
 			/* Delay to view the updated PWM dutycycle */
 			PWM_Delay();
+
+            /* Enable interrupt flag to update PWM dutycycle */
+            SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 		}
 
 

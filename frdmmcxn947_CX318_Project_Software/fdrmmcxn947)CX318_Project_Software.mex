@@ -590,7 +590,7 @@
                            </struct>
                         </array>
                         <setting name="pwmMode" value="kSCTIMER_CenterAlignedPwm"/>
-                        <setting name="pwmFrequency" value="1"/>
+                        <setting name="pwmFrequency" value="24000"/>
                         <array name="events"/>
                         <array name="states">
                            <struct name="0">
