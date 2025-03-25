@@ -34,6 +34,7 @@ void MAX_Begin();
 
 void PWM_Delay();
 void PWM_Init();
+void PWM_Update();
 
 
 /*******************************************************************************
@@ -91,6 +92,26 @@ void PWM_Delay() {
 	}
 }
 
+/* Use interrupt to update the PWM dutycycle on output */
+void PWM_Update() {
+	if (sctimerIsrFlag == 1U) {
+
+		/* Disable interrupt to retain current dutycycle for a few seconds */
+		SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
+		sctimerIsrFlag = 0U;
+
+		/* Update PWM duty cycle */
+		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
+
+		/* Delay to view the updated PWM dutycycle */
+		//PWM_Delay();
+
+		/* Enable interrupt flag to update PWM dutycycle */
+		SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+	}
+}
+
 /* SCT0_IRQn interrupt handler */
 void SCT0_IRQHANDLER(void) {
   /* Get status flags */
@@ -100,7 +121,7 @@ void SCT0_IRQHANDLER(void) {
   sctimerIsrFlag = 1U;
 
   if (brightnessUp == 1U)
-  {
+	{
 	  /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
 	   * as channel interrupt will not be set for 100%
 	   */
@@ -109,15 +130,15 @@ void SCT0_IRQHANDLER(void) {
 		  updatedDutycycle = 99U;
 		  brightnessUp     = 0U;
 	  }
-  }
-  else
-  {
+	}
+	else
+	{
 	  /* Decrease duty cycle until it reach limited value */
 	  if (--updatedDutycycle == 1U)
 	  {
 		  brightnessUp = 1U;
 	  }
-  }
+	}
 
   /* Clear status flags */
   SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
@@ -186,7 +207,6 @@ int main(void)
 		if (red_buffer[i] < led_min) { led_min = red_buffer[i]; }
 		if (red_buffer[i] > led_max) { led_max = red_buffer[i]; }
 
-		//PRINTF("red = %d, ir = %d\r\n", red_buffer[i], ir_led_buffer[i]);
 	}
 
 	prev_data = red_buffer[i];
@@ -199,6 +219,7 @@ int main(void)
 	);
 
 	while (1) {
+
 
 		/* Continuously sample, hr & sp02 calculated every 1s */
 		led_min = 0x3FFFF;
@@ -239,13 +260,6 @@ int main(void)
 				if(brightness > MAX_BRIGHTNESS) { brightness = MAX_BRIGHTNESS; }
 
 			}
-
-			// WRITE TO LEDs
-
-//			PRINTF(
-//					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
-//					red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
-//			);
 		}
 
 		maxim_heart_rate_and_oxygen_saturation(
@@ -254,21 +268,11 @@ int main(void)
 				&heart_rate, &hr_valid
 		);
 
-		/* Use interrupt to update the PWM dutycycle on output */
-		if (sctimerIsrFlag == 1U) {
-			/* Disable interrupt to retain current dutycycle for a few seconds */
-			SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+		PWM_Update();
 
-			sctimerIsrFlag = 0U;
-
-			/* Update PWM duty cycle */
-			SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
-
-			/* Delay to view the updated PWM dutycycle */
-			PWM_Delay();
-
-			/* Enable interrupt flag to update PWM dutycycle */
-			SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-		}
+		PRINTF(
+				"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
+				red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
+		);
 	}
 }
