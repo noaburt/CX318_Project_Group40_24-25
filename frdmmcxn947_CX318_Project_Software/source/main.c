@@ -199,24 +199,6 @@ int main(void)
 	);
 
 	while (1) {
-		/* Use interrupt to update the PWM dutycycle on output */
-
-		if (sctimerIsrFlag == 1U) {
-			/* Disable interrupt to retain current dutycycle for a few seconds */
-			SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-
-			sctimerIsrFlag = 0U;
-
-			/* Update PWM duty cycle */
-			SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
-
-			/* Delay to view the updated PWM dutycycle */
-			PWM_Delay();
-
-            /* Enable interrupt flag to update PWM dutycycle */
-            SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-		}
-
 
 		/* Continuously sample, hr & sp02 calculated every 1s */
 		led_min = 0x3FFFF;
@@ -264,12 +246,29 @@ int main(void)
 //					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
 //					red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
 //			);
+		}
 
-			maxim_heart_rate_and_oxygen_saturation(
-					ir_led_buffer, ir_buffer_len, red_buffer,
-					&spo2, &spo2_valid,
-					&heart_rate, &hr_valid
-			);
+		maxim_heart_rate_and_oxygen_saturation(
+				ir_led_buffer, ir_buffer_len, red_buffer,
+				&spo2, &spo2_valid,
+				&heart_rate, &hr_valid
+		);
+
+		/* Use interrupt to update the PWM dutycycle on output */
+		if (sctimerIsrFlag == 1U) {
+			/* Disable interrupt to retain current dutycycle for a few seconds */
+			SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
+			sctimerIsrFlag = 0U;
+
+			/* Update PWM duty cycle */
+			SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
+
+			/* Delay to view the updated PWM dutycycle */
+			PWM_Delay();
+
+			/* Enable interrupt flag to update PWM dutycycle */
+			SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 		}
 	}
 }
