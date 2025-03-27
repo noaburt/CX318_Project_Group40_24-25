@@ -22,8 +22,8 @@
  ******************************************************************************/
 #define MAX_BRIGHTNESS 255
 
-#define MAX_HR 180
-#define MAX_HR_DELT 50
+#define MAX_HR 500
+#define MAX_HR_DELT 500
 
 #define SCTIMER_OUT kSCTIMER_Out_4
 
@@ -43,8 +43,8 @@ void PWM_Update();
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-uint32_t rest_hr;
-uint32_t prev_hr;
+int32_t rest_hr;
+int32_t prev_hr;
 double hr_factor;
 
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
@@ -148,7 +148,7 @@ void SCT0_IRQHANDLER(void) {
 
   /* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
   hr_factor = (prev_hr / MAX_HR); // ratio of current VALID hr to max heart rate (adding rest hr ratio to map from rest -> MAX)
-  updatedDutycycle = 30;
+  updatedDutycycle = hr_factor * 100;
 
   sctimerIsrFlag = 1U;
   PWM_Update();
@@ -296,7 +296,7 @@ int main(void)
 		}
 
 		PRINTF(
-				"HR Valid = %d, HR = %d, Stored HR = %d, HR Factor = %%e %%e\r\n", hr_valid, heart_rate, prev_hr, hr_factor, (prev_hr / MAX_HR)
+				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d should be %d\r\n", hr_valid, heart_rate, prev_hr, updatedDutycycle, (prev_hr/MAX_HR)*100U
 		);
 
 		//PWM_Update();
