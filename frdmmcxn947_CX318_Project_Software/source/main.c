@@ -45,6 +45,7 @@ void PWM_Update();
  ******************************************************************************/
 uint32_t rest_hr;
 uint32_t prev_hr;
+double hr_factor;
 
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
 int32_t ir_buffer_len; 			// IR data length
@@ -52,7 +53,6 @@ uint32_t red_buffer[500];		// Red LED sensor data
 int32_t spo2; 					// SPo2 value
 int8_t spo2_valid; 				// SPo2 calculation validity
 int32_t heart_rate; 			// Heart rate value
-int32_t prev_hr;				// Previous heart rate
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
@@ -146,9 +146,9 @@ void SCT0_IRQHANDLER(void) {
 //	  }
 //	}
 
-  /* Map heart rate to value betweek 0% and 99% duty cycle */
-  float hr_factor = prev_hr / MAX_HR; // ratio of current VALID hr to max heart rate
-  updatedDutycycle = hr_factor * 100;
+  /* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
+  hr_factor = (prev_hr / MAX_HR); // ratio of current VALID hr to max heart rate (adding rest hr ratio to map from rest -> MAX)
+  updatedDutycycle = 30;
 
   sctimerIsrFlag = 1U;
   PWM_Update();
@@ -170,6 +170,7 @@ void SCT0_IRQHANDLER(void) {
 int main(void)
 {
     char ch;
+    hr_factor = 0;
 
     /* Init board hardware. */
     /* attach FRO 12M to FLEXCOMM4 (debug console) */
@@ -274,10 +275,12 @@ int main(void)
 
 			}
 
-			PRINTF(
+			/*PRINTF(
 					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
 					red_buffer[i], ir_led_buffer[i], heart_rate, hr_valid, spo2, spo2_valid
-			);
+			);*/
+
+			PWM_Delay();
 		}
 
 		maxim_heart_rate_and_oxygen_saturation(
@@ -286,15 +289,15 @@ int main(void)
 				&heart_rate, &hr_valid
 		);
 
-		PRINTF(
-				"HR = %d, HRvalid = %d\r\n", heart_rate, hr_valid
-		);
-
 		if (hr_valid == 1) {
-			if (prev_hr != 0 && heart_rate - prev_hr < MAX_HR_DELT) {
-				prev_hr = heart_rate;
+			if (prev_hr == 0 || abs(heart_rate - prev_hr) < MAX_HR_DELT) {
+				if (heart_rate <= MAX_HR) { prev_hr = heart_rate; }
 			}
 		}
+
+		PRINTF(
+				"HR Valid = %d, HR = %d, Stored HR = %d, HR Factor = %%e %%e\r\n", hr_valid, heart_rate, prev_hr, hr_factor, (prev_hr / MAX_HR)
+		);
 
 		//PWM_Update();
 	}
