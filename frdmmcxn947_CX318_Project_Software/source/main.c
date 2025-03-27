@@ -23,6 +23,7 @@
 #define MAX_BRIGHTNESS 255
 
 #define MAX_HR 180
+#define MAX_HR_DELT 50
 
 #define SCTIMER_OUT kSCTIMER_Out_4
 
@@ -51,6 +52,7 @@ uint32_t red_buffer[500];		// Red LED sensor data
 int32_t spo2; 					// SPo2 value
 int8_t spo2_valid; 				// SPo2 calculation validity
 int32_t heart_rate; 			// Heart rate value
+int32_t prev_hr;				// Previous heart rate
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
@@ -124,9 +126,6 @@ void SCT0_IRQHANDLER(void) {
 
   /* Place your interrupt code here */
 
-  sctimerIsrFlag = 1U;
-  PWM_Update();
-
 //  if (brightnessUp == 1U)
 //	{
 //	  /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
@@ -148,6 +147,11 @@ void SCT0_IRQHANDLER(void) {
 //	}
 
   /* Map heart rate to value betweek 0% and 99% duty cycle */
+  float hr_factor = prev_hr / MAX_HR; // ratio of current VALID hr to max heart rate
+  updatedDutycycle = hr_factor * 100;
+
+  sctimerIsrFlag = 1U;
+  PWM_Update();
 
   /* Clear status flags */
   SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
@@ -281,6 +285,16 @@ int main(void)
 				&spo2, &spo2_valid,
 				&heart_rate, &hr_valid
 		);
+
+		PRINTF(
+				"HR = %d, HRvalid = %d\r\n", heart_rate, hr_valid
+		);
+
+		if (hr_valid == 1) {
+			if (prev_hr != 0 && heart_rate - prev_hr < MAX_HR_DELT) {
+				prev_hr = heart_rate;
+			}
+		}
 
 		//PWM_Update();
 	}
