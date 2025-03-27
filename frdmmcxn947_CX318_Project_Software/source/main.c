@@ -117,11 +117,7 @@ int main(void)
 	prev_data = red_buffer[i];
 
 	/* Calculate hr and Sp02 after first 500 samples (5 seconds) */
-	maxim_heart_rate_and_oxygen_saturation(
-			ir_led_buffer, ir_buffer_len, red_buffer,
-			&spo2, &spo2_valid,
-			&heart_rate, &hr_valid
-	);
+	maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
 
 	/* Continuously sample, hr & sp02 calculated every 1s*/
 	while (1) {
@@ -164,19 +160,12 @@ int main(void)
 				if(brightness > MAX_BRIGHTNESS) { brightness = MAX_BRIGHTNESS; }
 
 			}
-
-			// WRITE TO LEDs
-
-			PRINTF(
-					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
-					red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
-			);
-
-			maxim_heart_rate_and_oxygen_saturation(
-					ir_led_buffer, ir_buffer_len, red_buffer,
-					&spo2, &spo2_valid,
-					&heart_rate, &hr_valid
-			);
 		}
+
+		maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
+		PRINTF(
+				"HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
+				heart_rate, hr_valid, spo2, spo2_valid
+		);
 	}
 }
