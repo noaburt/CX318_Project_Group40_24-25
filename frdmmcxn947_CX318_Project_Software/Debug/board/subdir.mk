@@ -4,26 +4,26 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../board/MAX30102.c \
 ../board/algorithm.c \
 ../board/board.c \
 ../board/clock_config.c \
-../board/max30102.c \
 ../board/peripherals.c \
 ../board/pin_mux.c 
 
 C_DEPS += \
+./board/MAX30102.d \
 ./board/algorithm.d \
 ./board/board.d \
 ./board/clock_config.d \
-./board/max30102.d \
 ./board/peripherals.d \
 ./board/pin_mux.d 
 
 OBJS += \
+./board/MAX30102.o \
 ./board/algorithm.o \
 ./board/board.o \
 ./board/clock_config.o \
-./board/max30102.o \
 ./board/peripherals.o \
 ./board/pin_mux.o 
 
@@ -40,7 +40,7 @@ board/%.o: ../board/%.c board/subdir.mk
 clean: clean-board
 
 clean-board:
-	-$(RM) ./board/algorithm.d ./board/algorithm.o ./board/board.d ./board/board.o ./board/clock_config.d ./board/clock_config.o ./board/max30102.d ./board/max30102.o ./board/peripherals.d ./board/peripherals.o ./board/pin_mux.d ./board/pin_mux.o
+	-$(RM) ./board/MAX30102.d ./board/MAX30102.o ./board/algorithm.d ./board/algorithm.o ./board/board.d ./board/board.o ./board/clock_config.d ./board/clock_config.o ./board/peripherals.d ./board/peripherals.o ./board/pin_mux.d ./board/pin_mux.o
 
 .PHONY: clean-board
 

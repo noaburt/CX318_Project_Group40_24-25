@@ -22,6 +22,8 @@
  ******************************************************************************/
 #define MAX_BRIGHTNESS 255
 
+#define MAX_HR 180
+
 #define SCTIMER_OUT kSCTIMER_Out_4
 
 /*******************************************************************************
@@ -40,6 +42,9 @@ void PWM_Update();
 /*******************************************************************************
  * Variables
  ******************************************************************************/
+uint32_t rest_hr;
+uint32_t prev_hr;
+
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
 int32_t ir_buffer_len; 			// IR data length
 uint32_t red_buffer[500];		// Red LED sensor data
@@ -118,27 +123,31 @@ void SCT0_IRQHANDLER(void) {
   uint32_t status_flags = SCTIMER_GetStatusFlags(SCT0_PERIPHERAL);
 
   /* Place your interrupt code here */
-  sctimerIsrFlag = 1U;
 
-  if (brightnessUp == 1U)
-	{
-	  /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
-	   * as channel interrupt will not be set for 100%
-	   */
-	  if (++updatedDutycycle >= 99U)
-	  {
-		  updatedDutycycle = 99U;
-		  brightnessUp     = 0U;
-	  }
-	}
-	else
-	{
-	  /* Decrease duty cycle until it reach limited value */
-	  if (--updatedDutycycle == 1U)
-	  {
-		  brightnessUp = 1U;
-	  }
-	}
+  sctimerIsrFlag = 1U;
+  PWM_Update();
+
+//  if (brightnessUp == 1U)
+//	{
+//	  /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
+//	   * as channel interrupt will not be set for 100%
+//	   */
+//	  if (++updatedDutycycle >= 99U)
+//	  {
+//		  updatedDutycycle = 99U;
+//		  brightnessUp     = 0U;
+//	  }
+//	}
+//	else
+//	{
+//	  /* Decrease duty cycle until it reach limited value */
+//	  if (--updatedDutycycle == 1U)
+//	  {
+//		  brightnessUp = 1U;
+//	  }
+//	}
+
+  /* Map heart rate to value betweek 0% and 99% duty cycle */
 
   /* Clear status flags */
   SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
@@ -186,7 +195,7 @@ int main(void)
 	int32_t brightness;
 	float tmp;
 
-	status_t result;
+	rest_hr = 75; // Initialise rest hr, can change this
 
 	/* Prepare for reading data */
 	brightness = 0;
@@ -260,6 +269,11 @@ int main(void)
 				if(brightness > MAX_BRIGHTNESS) { brightness = MAX_BRIGHTNESS; }
 
 			}
+
+			PRINTF(
+					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
+					red_buffer[i], ir_led_buffer[i], heart_rate, hr_valid, spo2, spo2_valid
+			);
 		}
 
 		maxim_heart_rate_and_oxygen_saturation(
@@ -268,11 +282,6 @@ int main(void)
 				&heart_rate, &hr_valid
 		);
 
-		PWM_Update();
-
-		PRINTF(
-				"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
-				red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
-		);
+		//PWM_Update();
 	}
 }
