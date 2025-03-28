@@ -45,7 +45,7 @@ void PWM_Update();
  ******************************************************************************/
 int32_t rest_hr;
 int32_t prev_hr;
-double hr_factor;
+int32_t hr_factor;
 
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
 int32_t ir_buffer_len; 			// IR data length
@@ -147,8 +147,9 @@ void SCT0_IRQHANDLER(void) {
 //	}
 
   /* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
-  hr_factor = (prev_hr / MAX_HR); // ratio of current VALID hr to max heart rate (adding rest hr ratio to map from rest -> MAX)
-  updatedDutycycle = hr_factor * 100;
+  uint32_t mult_fac = 100000;
+  hr_factor = (prev_hr*mult_fac / MAX_HR*mult_fac); // ratio of current VALID hr to max heart rate (adding rest hr ratio to map from rest -> MAX)
+  updatedDutycycle = (hr_factor/mult_fac) * 100;
 
   sctimerIsrFlag = 1U;
   PWM_Update();
@@ -296,7 +297,7 @@ int main(void)
 		}
 
 		PRINTF(
-				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d should be %d\r\n", hr_valid, heart_rate, prev_hr, updatedDutycycle, (prev_hr/MAX_HR)*100U
+				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, updatedDutycycle
 		);
 
 		//PWM_Update();
