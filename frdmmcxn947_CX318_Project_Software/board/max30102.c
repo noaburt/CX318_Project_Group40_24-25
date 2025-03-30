@@ -66,7 +66,7 @@ status_t MAX_Start(void) {
 		return result;
 	}
 
-	result = MAX_Send(&txBuffer[5], 1, REG_FIFO_CONFIG); //sample avg = 1, fifo rollover=false, fifo almost full = 17
+	result = MAX_Send(&txBuffer[5], 1, REG_FIFO_CONFIG); //sample avg = 4, fifo rollover=false, fifo almost full = 32
 	if(result != kStatus_Success) {
 		return result;
 	}
