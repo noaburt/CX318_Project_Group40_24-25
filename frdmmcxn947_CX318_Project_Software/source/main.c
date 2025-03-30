@@ -151,20 +151,20 @@ void SCT0_IRQHANDLER(void) {
  */
 int main(void)
 {
-    char ch;
+	char ch;
 
-    /* Init board hardware. */
-    /* attach FRO 12M to FLEXCOMM4 (debug console) */
-    CLOCK_SetClkDiv(kCLOCK_DivFlexcom4Clk, 1u);
-    CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);
+	/* Init board hardware. */
+	/* attach FRO 12M to FLEXCOMM4 (debug console) */
+	CLOCK_SetClkDiv(kCLOCK_DivFlexcom4Clk, 1u);
+	CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);
 
-    /* attach TRACECLKDIV to TRACE */
-    CLOCK_SetClkDiv(kCLOCK_DivTraceClk, 2U);
-    CLOCK_AttachClk(kTRACE_DIV_to_TRACE);
+	/* attach TRACECLKDIV to TRACE */
+	CLOCK_SetClkDiv(kCLOCK_DivTraceClk, 2U);
+	CLOCK_AttachClk(kTRACE_DIV_to_TRACE);
 
-    BOARD_InitBootPins();
-    BOARD_InitBootClocks();
-    BOARD_InitDebugConsole();
+	BOARD_InitBootPins();
+	BOARD_InitBootClocks();
+	BOARD_InitDebugConsole();
 
 	BOARD_InitPeripherals();
 	/* Enable interrupt flag for event associated with out 4, we use the interrupt to update dutycycle */
@@ -175,7 +175,7 @@ int main(void)
 
 	MAX_Begin();
 
-    /* Variables for calculating LED brightness reflecting heart beat */
+	/* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
 	int i;
 	int32_t brightness;
@@ -187,9 +187,9 @@ int main(void)
 	led_max = 0;
 
 	/* Heart Rate to Led PWM Variables */
-    hr_factor = 0;
-    updatedDutycycle = 10U;
-    rest_hr = MIN_HR;
+	hr_factor = 0;
+	updatedDutycycle = 10U;
+	rest_hr = MIN_HR;
 
 	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
@@ -213,7 +213,6 @@ int main(void)
 	maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
 
 	while (1) {
-
 
 		/* Continuously sample, hr & sp02 calculated every 1s */
 		led_min = 0x3FFFF;
@@ -254,22 +253,13 @@ int main(void)
 				if(brightness > MAX_BRIGHTNESS) { brightness = MAX_BRIGHTNESS; }
 
 			}
-<<<<<<< HEAD
-		}
-
-		maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
-		PRINTF(
-				"HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
-				heart_rate, hr_valid, spo2, spo2_valid
-		);
-=======
 
 			/*PRINTF(
 					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
 					red_buffer[i], ir_led_buffer[i], heart_rate, hr_valid, spo2, spo2_valid
 			);*/
 
-			PWM_Delay();
+			PWM_Delay(); //Delay instead of PRINTF, loop too fast for MAX?
 		}
 
 		maxim_heart_rate_and_oxygen_saturation(
@@ -291,6 +281,5 @@ int main(void)
 		);
 
 		//PWM_Update();
->>>>>>> cf5be6ed870a890d6be2353731cafe593d86e341
 	}
 }
