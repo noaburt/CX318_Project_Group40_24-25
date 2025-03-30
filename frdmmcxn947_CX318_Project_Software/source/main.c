@@ -24,8 +24,10 @@
  ******************************************************************************/
 #define MAX_BRIGHTNESS 255
 
-#define MAX_HR 500
-#define MAX_HR_DELT 500
+#define MAX_HR 200
+#define MIN_HR 40
+#define MAX_HR_DELT 100
+#define MIN_LED_LEVEL 15
 
 #define SCTIMER_OUT kSCTIMER_Out_4
 
@@ -123,31 +125,12 @@ void SCT0_IRQHANDLER(void) {
 
 	/* Place your interrupt code here */
 
-//  if (brightnessUp == 1U)
-//	{
-//	  /* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
-//	   * as channel interrupt will not be set for 100%
-//	   */
-//	  if (++updatedDutycycle >= 99U)
-//	  {
-//		  updatedDutycycle = 99U;
-//		  brightnessUp     = 0U;
-//	  }
-//	}
-//	else
-//	{
-//	  /* Decrease duty cycle until it reach limited value */
-//	  if (--updatedDutycycle == 1U)
-//	  {
-//		  brightnessUp = 1U;
-//	  }
-//	}
-
 	/* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
-	hr_factor = prev_hr;
+	hr_factor = prev_hr - rest_hr;
 	hr_factor /= MAX_HR; // ratio of current VALID hr to max heart rate
 
 	updatedDutycycle = (uint8_t) ceil(hr_factor * 100U);
+	if (updatedDutycycle < MIN_LED_LEVEL) { updatedDutycycle = MIN_LED_LEVEL; }
 
 	/* Update pwm speed */
 	PWM_Update();
@@ -169,8 +152,6 @@ void SCT0_IRQHANDLER(void) {
 int main(void)
 {
     char ch;
-    hr_factor = 0;
-    updatedDutycycle = 10U;
 
     /* Init board hardware. */
     /* attach FRO 12M to FLEXCOMM4 (debug console) */
@@ -200,12 +181,15 @@ int main(void)
 	int32_t brightness;
 	float tmp;
 
-	rest_hr = 75; // Initialise rest hr, can change this
-
 	/* Prepare for reading data */
 	brightness = 0;
 	led_min = 0x3FFFF;
 	led_max = 0;
+
+	/* Heart Rate to Led PWM Variables */
+    hr_factor = 0;
+    updatedDutycycle = 10U;
+    rest_hr = MIN_HR;
 
 	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
@@ -291,9 +275,11 @@ int main(void)
 
 		if (hr_valid == 1) {
 			if (prev_hr == 0 || abs(heart_rate - prev_hr) < MAX_HR_DELT) {
-				if (heart_rate <= MAX_HR) { prev_hr = heart_rate; }
+				if (heart_rate <= MAX_HR && heart_rate >= MIN_HR) { prev_hr = heart_rate; }
 			}
 		}
+
+		if (prev_hr < rest_hr) { rest_hr = prev_hr; }
 
 		PRINTF(
 				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, updatedDutycycle
