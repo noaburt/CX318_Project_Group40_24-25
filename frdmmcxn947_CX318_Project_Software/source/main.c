@@ -8,9 +8,12 @@
 
 #include <max30102.h>
 #include <algorithm.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 #include "pin_mux.h"
+#include "peripherals.h"
 #include "clock_config.h"
 #include "board.h"
 
@@ -21,13 +24,33 @@
  ******************************************************************************/
 #define MAX_BRIGHTNESS 255
 
+#define MAX_HR 200
+#define MIN_HR 40
+#define MAX_HR_DELT 100
+#define MIN_LED_LEVEL 15
+
+#define SCTIMER_OUT kSCTIMER_Out_4
+
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
 
+void MAIN_CheckErr(status_t result, char* occurrence);
+
+void MAX_Begin();
+
+void PWM_Delay();
+void PWM_Init();
+void PWM_Update();
+
+
 /*******************************************************************************
  * Variables
  ******************************************************************************/
+int rest_hr;
+int prev_hr;
+double hr_factor;
+
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
 int32_t ir_buffer_len; 			// IR data length
 uint32_t red_buffer[500];		// Red LED sensor data
@@ -37,12 +60,16 @@ int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
+uint8_t sctimerIsrFlag = 0U;
+uint8_t brightnessUp = 1U;
+uint8_t updatedDutycycle = 10U;
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
 
 /* Return from main when error without ACTUALLY returning */
-void check_error(status_t result, char* occurrence) {
+void MAIN_CheckErr(status_t result, char* occurrence) {
 
 	if (result == kStatus_Success) { return; }
 	PRINTF("PROGRAM FAILED AT: %s with %d\r\n", occurrence, result);
@@ -51,6 +78,73 @@ void check_error(status_t result, char* occurrence) {
 
 	exit;
 }
+
+/* Setup and start MAX30102 */
+void MAX_Begin() {
+	MAX_Init();
+
+	SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
+
+	MAIN_CheckErr(MAX_Reset(), "Max Reset");
+
+	/* Reading REG_INTR_STATUS_1 clears interrupts */
+	MAIN_CheckErr(MAX_Read(&dummy, REG_INTR_STATUS_1), "Max Read INTR");
+
+	/* Set configuration */
+	MAIN_CheckErr(MAX_Start(), "Max Start");
+}
+
+void PWM_Delay() {
+	volatile uint32_t i = 0U;
+
+	for (i = 0U; i < 80000U; ++i)
+	{
+		__asm("NOP"); /* delay */
+	}
+}
+
+/* Use interrupt to update the PWM dutycycle on output */
+void PWM_Update() {
+	/* Disable interrupt to retain current dutycycle for a few seconds */
+	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
+	/* Update PWM duty cycle */
+	SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
+
+	/* Delay to view the updated PWM dutycycle */
+	//PWM_Delay();
+
+	/* Enable interrupt flag to update PWM dutycycle */
+	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+}
+
+/* SCT0_IRQn interrupt handler */
+void SCT0_IRQHANDLER(void) {
+	/* Get status flags */
+	uint32_t status_flags = SCTIMER_GetStatusFlags(SCT0_PERIPHERAL);
+
+	/* Place your interrupt code here */
+
+	/* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
+	hr_factor = prev_hr - rest_hr;
+	hr_factor /= MAX_HR; // ratio of current VALID hr to max heart rate
+
+	updatedDutycycle = (uint8_t) ceil(hr_factor * 100U);
+	if (updatedDutycycle < MIN_LED_LEVEL) { updatedDutycycle = MIN_LED_LEVEL; }
+
+	/* Update pwm speed */
+	PWM_Update();
+
+	/* Clear status flags */
+	SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
+
+	/* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+	 Store immediate overlapping exception return operation might vector to incorrect interrupt. */
+  #if defined __CORTEX_M && (__CORTEX_M == 4U)
+    __DSB();
+  #endif
+}
+
 
 /*!
  * @brief Main function
@@ -72,30 +166,30 @@ int main(void)
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
 
+	BOARD_InitPeripherals();
+	/* Enable interrupt flag for event associated with out 4, we use the interrupt to update dutycycle */
+	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
+	/* Receive notification when event is triggered */
+	SCTIMER_SetCallback(SCT0, SCT0_IRQHANDLER, SCT0_pwmEvent[0]);
+
+	MAX_Begin();
+
     /* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
 	int i;
 	int32_t brightness;
 	float tmp;
 
-	status_t result;
-
-	MAX_Init();
-
-    SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
-
-	check_error(MAX_Reset(), "Max Reset");
-
-    /* Reading REG_INTR_STATUS_1 clears interrupts */
-	check_error(MAX_Read(&dummy, REG_INTR_STATUS_1), "Max Read INTR");
-
-    /* Set configuration */
-	check_error(MAX_Start(), "Max Start");
-
 	/* Prepare for reading data */
 	brightness = 0;
 	led_min = 0x3FFFF;
 	led_max = 0;
+
+	/* Heart Rate to Led PWM Variables */
+    hr_factor = 0;
+    updatedDutycycle = 10U;
+    rest_hr = MIN_HR;
 
 	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
@@ -105,13 +199,12 @@ int main(void)
 
 		while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1);
 
-		check_error(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
+		MAIN_CheckErr(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
 
 		/* Update signal mix & max */
 		if (red_buffer[i] < led_min) { led_min = red_buffer[i]; }
 		if (red_buffer[i] > led_max) { led_max = red_buffer[i]; }
 
-		//PRINTF("red = %d, ir = %d\r\n", red_buffer[i], ir_led_buffer[i]);
 	}
 
 	prev_data = red_buffer[i];
@@ -123,9 +216,10 @@ int main(void)
 			&heart_rate, &hr_valid
 	);
 
-	/* Continuously sample, hr & sp02 calculated every 1s*/
 	while (1) {
 
+
+		/* Continuously sample, hr & sp02 calculated every 1s */
 		led_min = 0x3FFFF;
 		led_max = 0;
 
@@ -145,7 +239,7 @@ int main(void)
 
 			while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1) {}
 
-			check_error(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
+			MAIN_CheckErr(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
 
 			if (red_buffer[i] > prev_data) {
 				tmp = red_buffer[i] - prev_data;
@@ -165,18 +259,32 @@ int main(void)
 
 			}
 
-			// WRITE TO LEDs
-
-			PRINTF(
+			/*PRINTF(
 					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
-					red_buffer, ir_led_buffer, heart_rate, hr_valid, spo2, spo2_valid
-			);
+					red_buffer[i], ir_led_buffer[i], heart_rate, hr_valid, spo2, spo2_valid
+			);*/
 
-			maxim_heart_rate_and_oxygen_saturation(
-					ir_led_buffer, ir_buffer_len, red_buffer,
-					&spo2, &spo2_valid,
-					&heart_rate, &hr_valid
-			);
+			PWM_Delay();
 		}
+
+		maxim_heart_rate_and_oxygen_saturation(
+				ir_led_buffer, ir_buffer_len, red_buffer,
+				&spo2, &spo2_valid,
+				&heart_rate, &hr_valid
+		);
+
+		if (hr_valid == 1) {
+			if (prev_hr == 0 || abs(heart_rate - prev_hr) < MAX_HR_DELT) {
+				if (heart_rate <= MAX_HR && heart_rate >= MIN_HR) { prev_hr = heart_rate; }
+			}
+		}
+
+		if (prev_hr < rest_hr) { rest_hr = prev_hr; }
+
+		PRINTF(
+				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, updatedDutycycle
+		);
+
+		//PWM_Update();
 	}
 }

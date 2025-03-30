@@ -10,10 +10,41 @@
  * Included files
  **********************************************************************************************************************/
 #include "fsl_common.h"
+#include "fsl_clock.h"
+#include "fsl_sctimer.h"
 
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
+
+/***********************************************************************************************************************
+ * Definitions
+ **********************************************************************************************************************/
+/* Definitions for BOARD_InitPeripherals functional group */
+/* BOARD_InitPeripherals defines for SCT0 */
+/* Definition of peripheral ID */
+#define SCT0_PERIPHERAL SCT0
+/* Definition of clock source frequency */
+#define SCT0_CLOCK_FREQ CLOCK_GetFreq(kCLOCK_BusClk)
+/* SCT0 interrupt vector ID (number). */
+#define SCT0_IRQN SCT0_IRQn
+/* SCT0 interrupt handler identifier. */
+#define SCT0_IRQHANDLER SCT0_IRQHandler
+/* Sync input 0 mask */
+#define SCT0_INPUTSYNC_0 (1U << 0U)
+/* Sync input 1 mask */
+#define SCT0_INPUTSYNC_1 (1U << 1U)
+/* Sync input 2 mask */
+#define SCT0_INPUTSYNC_2 (1U << 2U)
+/* Sync input 3 mask */
+#define SCT0_INPUTSYNC_3 (1U << 3U)
+
+/***********************************************************************************************************************
+ * Global variables
+ **********************************************************************************************************************/
+extern const sctimer_config_t SCT0_initConfig;
+extern const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[1];
+extern uint32_t SCT0_pwmEvent[1];
 
 /***********************************************************************************************************************
  * Initialization functions

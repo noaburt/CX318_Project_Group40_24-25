@@ -39,7 +39,7 @@ status_t MAX_Start(void) {
 
 	status_t result;
 
-	uint8_t txBuffer[11] = {0xC0, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x03, 0x27, 0x24, 0x24, 0x7F};
+	uint8_t txBuffer[11] = {0xC0, 0x00, 0x00, 0x00, 0x00, 0x40, 0x03, 0x27, 0x24, 0x24, 0x7F};
 
 	result = MAX_Send(&txBuffer[0], 1, REG_INTR_ENABLE_1); // INTR setting
 	if(result != kStatus_Success) {
@@ -66,7 +66,7 @@ status_t MAX_Start(void) {
 		return result;
 	}
 
-	result = MAX_Send(&txBuffer[5], 1, REG_FIFO_CONFIG); //sample avg = 1, fifo rollover=false, fifo almost full = 17
+	result = MAX_Send(&txBuffer[5], 1, REG_FIFO_CONFIG); //sample avg = 4, fifo rollover=false, fifo almost full = 32
 	if(result != kStatus_Success) {
 		return result;
 	}
