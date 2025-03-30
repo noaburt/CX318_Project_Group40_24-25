@@ -8,6 +8,8 @@
 
 #include <max30102.h>
 #include <algorithm.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 #include "pin_mux.h"
@@ -43,9 +45,9 @@ void PWM_Update();
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-int32_t rest_hr;
-int32_t prev_hr;
-int32_t hr_factor;
+int rest_hr;
+int prev_hr;
+double hr_factor;
 
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
 int32_t ir_buffer_len; 			// IR data length
@@ -101,30 +103,25 @@ void PWM_Delay() {
 
 /* Use interrupt to update the PWM dutycycle on output */
 void PWM_Update() {
-	if (sctimerIsrFlag == 1U) {
+	/* Disable interrupt to retain current dutycycle for a few seconds */
+	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
-		/* Disable interrupt to retain current dutycycle for a few seconds */
-		SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+	/* Update PWM duty cycle */
+	SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
 
-		sctimerIsrFlag = 0U;
+	/* Delay to view the updated PWM dutycycle */
+	//PWM_Delay();
 
-		/* Update PWM duty cycle */
-		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
-
-		/* Delay to view the updated PWM dutycycle */
-		//PWM_Delay();
-
-		/* Enable interrupt flag to update PWM dutycycle */
-		SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-	}
+	/* Enable interrupt flag to update PWM dutycycle */
+	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 }
 
 /* SCT0_IRQn interrupt handler */
 void SCT0_IRQHANDLER(void) {
-  /* Get status flags */
-  uint32_t status_flags = SCTIMER_GetStatusFlags(SCT0_PERIPHERAL);
+	/* Get status flags */
+	uint32_t status_flags = SCTIMER_GetStatusFlags(SCT0_PERIPHERAL);
 
-  /* Place your interrupt code here */
+	/* Place your interrupt code here */
 
 //  if (brightnessUp == 1U)
 //	{
@@ -146,19 +143,20 @@ void SCT0_IRQHANDLER(void) {
 //	  }
 //	}
 
-  /* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
-  uint32_t mult_fac = 100000;
-  hr_factor = (prev_hr*mult_fac / MAX_HR*mult_fac); // ratio of current VALID hr to max heart rate (adding rest hr ratio to map from rest -> MAX)
-  updatedDutycycle = (hr_factor/mult_fac) * 100;
+	/* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
+	hr_factor = prev_hr;
+	hr_factor /= MAX_HR; // ratio of current VALID hr to max heart rate
 
-  sctimerIsrFlag = 1U;
-  PWM_Update();
+	updatedDutycycle = (uint8_t) ceil(hr_factor * 100U);
 
-  /* Clear status flags */
-  SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
+	/* Update pwm speed */
+	PWM_Update();
 
-  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
-     Store immediate overlapping exception return operation might vector to incorrect interrupt. */
+	/* Clear status flags */
+	SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
+
+	/* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+	 Store immediate overlapping exception return operation might vector to incorrect interrupt. */
   #if defined __CORTEX_M && (__CORTEX_M == 4U)
     __DSB();
   #endif
@@ -172,6 +170,7 @@ int main(void)
 {
     char ch;
     hr_factor = 0;
+    updatedDutycycle = 10U;
 
     /* Init board hardware. */
     /* attach FRO 12M to FLEXCOMM4 (debug console) */
