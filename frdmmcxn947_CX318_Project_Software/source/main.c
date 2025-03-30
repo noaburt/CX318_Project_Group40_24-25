@@ -29,6 +29,12 @@
 #define MAX_HR_DELT 100
 #define MIN_LED_LEVEL 15
 
+/* States of state machine */
+#define STATE_WAIT 1
+#define STATE_PLAY 2
+#define STATE_BREAK 3
+#define STATE_FINISH 4
+
 #define SCTIMER_OUT kSCTIMER_Out_4
 
 /*******************************************************************************
@@ -47,8 +53,10 @@ void PWM_Update();
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-int rest_hr;
-int prev_hr;
+uint8_t STATE;
+
+uint32_t rest_hr;
+uint32_t prev_hr;
 double hr_factor;
 
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
