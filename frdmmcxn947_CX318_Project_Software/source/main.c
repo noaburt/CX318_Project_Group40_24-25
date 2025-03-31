@@ -27,7 +27,12 @@
 #define MAX_HR 200
 #define MIN_HR 40
 #define MAX_HR_DELT 100
-#define MIN_LED_LEVEL 15
+
+#define SCTIMER_LED_OUT kSCTIMER_Out_4
+#define SCTIMER_MOT_OUT kSCTIMER_Out_0
+
+#define MIN_LED_DUTY 15
+#define MAX_MOT_DUTY 50
 
 /* States of state machine */
 #define STATE_WAIT 1
@@ -35,7 +40,6 @@
 #define STATE_BREAK 3
 #define STATE_FINISH 4
 
-#define SCTIMER_OUT kSCTIMER_Out_4
 
 /*******************************************************************************
  * Prototypes
@@ -57,7 +61,6 @@ uint8_t STATE;
 
 uint32_t rest_hr;
 uint32_t prev_hr;
-double hr_factor;
 
 uint32_t ir_led_buffer[500]; 	// IR LED sensor data
 int32_t ir_buffer_len; 			// IR data length
@@ -70,7 +73,8 @@ uint8_t dummy;					// General 'dummy' variable
 
 uint8_t sctimerIsrFlag = 0U;
 uint8_t brightnessUp = 1U;
-uint8_t updatedDutycycle = 10U;
+uint8_t ledDutycycle;
+uint8_t motorDutycycle;
 
 /*******************************************************************************
  * Code
@@ -116,8 +120,9 @@ void PWM_Update() {
 	/* Disable interrupt to retain current dutycycle for a few seconds */
 	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
-	/* Update PWM duty cycle */
-	SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_OUT, updatedDutycycle, SCT0_pwmEvent[0]);
+	/* Update PWM duty cycles */
+	SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_LED_OUT, ledDutycycle, SCT0_pwmEvent[0]);
+	SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_MOT_OUT, motorDutycycle, SCT0_pwmEvent[0]);
 
 	/* Delay to view the updated PWM dutycycle */
 	//PWM_Delay();
@@ -133,12 +138,15 @@ void SCT0_IRQHANDLER(void) {
 
 	/* Place your interrupt code here */
 
-	/* Map heart rate from rest -> MAX to 0% -> 99% duty cycle */
-	hr_factor = prev_hr - rest_hr;
+	/* Map heart rate from rest -> MAX to 0% -> 99% duty cycles */
+	double hr_factor = prev_hr - rest_hr;
 	hr_factor /= MAX_HR; // ratio of current VALID hr to max heart rate
 
-	updatedDutycycle = (uint8_t) ceil(hr_factor * 100U);
-	if (updatedDutycycle < MIN_LED_LEVEL) { updatedDutycycle = MIN_LED_LEVEL; }
+	ledDutycycle = (uint8_t) ceil(hr_factor * 100U);
+	motorDutycycle = ledDutycycle;
+
+	if (ledDutycycle < MIN_LED_DUTY) { ledDutycycle = MIN_LED_DUTY; }
+	if (motorDutycycle > MAX_MOT_DUTY) { motorDutycycle = MAX_MOT_DUTY; }
 
 	/* Update pwm speed */
 	PWM_Update();
@@ -175,7 +183,7 @@ int main(void)
 	BOARD_InitDebugConsole();
 
 	BOARD_InitPeripherals();
-	/* Enable interrupt flag for event associated with out 4, we use the interrupt to update dutycycle */
+	/* Enable interrupt flag for event associated with out 0 and 4, we use the interrupt to update dutycycle */
 	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
 	/* Receive notification when event is triggered */
@@ -196,7 +204,7 @@ int main(void)
 
 	/* Heart Rate to Led PWM Variables */
 	hr_factor = 0;
-	updatedDutycycle = 10U;
+	ledDutycycle = 10U;
 	rest_hr = MIN_HR;
 
 	/* Buffer length stores 5 seconds of samples at 100s/s */
@@ -285,7 +293,7 @@ int main(void)
 		if (prev_hr < rest_hr) { rest_hr = prev_hr; }
 
 		PRINTF(
-				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, updatedDutycycle
+				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, ledDutycycle
 		);
 
 		//PWM_Update();

@@ -43,8 +43,8 @@ extern "C" {
  * Global variables
  **********************************************************************************************************************/
 extern const sctimer_config_t SCT0_initConfig;
-extern const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[1];
-extern uint32_t SCT0_pwmEvent[1];
+extern const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[2];
+extern uint32_t SCT0_pwmEvent[2];
 
 /***********************************************************************************************************************
  * Initialization functions

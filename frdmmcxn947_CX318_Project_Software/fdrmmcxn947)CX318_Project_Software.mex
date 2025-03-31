@@ -26,7 +26,8 @@
             <processor_version>24.12.10</processor_version>
             <pin_labels>
                <pin_label pin_num="L14" pin_signal="PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16" label="MAX_INT" identifier="MAX_INT"/>
-               <pin_label pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22" label="SCT_OUT"/>
+               <pin_label pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22" label="SCT_LED_OUT"/>
+               <pin_label pin_num="H3" pin_signal="PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0" label="SCT_MOT_OUT"/>
             </pin_labels>
          </pins_profile>
          <functions_list>
@@ -173,6 +174,7 @@
                </dependencies>
                <pins>
                   <pin peripheral="SCT0" signal="OUT, 4" pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22"/>
+                  <pin peripheral="SCT0" signal="OUT, 0" pin_num="H3" pin_signal="PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0"/>
                </pins>
             </function>
          </functions_list>
@@ -537,6 +539,11 @@
                         <data type="Boolean">true</data>
                      </feature>
                   </dependency>
+                  <dependency resourceType="PeripheralUnifiedSignal" resourceId="SCT0.out.0" description="Signal output 0 is not routed." problem_level="1" source="Peripherals:BOARD_InitPeripherals">
+                     <feature name="routed" evaluation="equal">
+                        <data type="Boolean">true</data>
+                     </feature>
+                  </dependency>
                </dependencies>
                <instances>
                   <instance name="NVIC" uuid="2923cb66-461a-4675-a071-d75ca197f968" type="nvic" type_id="nvic" mode="general" peripheral="NVIC" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
@@ -556,7 +563,7 @@
                            <setting name="SCTInputClockSourceFreq" value="custom:0"/>
                            <setting name="clockSelect" value="kSCTIMER_Clock_On_Rise_Input_0"/>
                            <setting name="enableCounterUnify" value="true"/>
-                           <setting name="enableBidirection_l" value="false"/>
+                           <setting name="enableBidirection_l" value="true"/>
                            <setting name="enableBidirection_h" value="false"/>
                            <setting name="prescale_l" value="1"/>
                            <setting name="prescale_h" value="1"/>
@@ -588,6 +595,11 @@
                               <setting name="level" value="kSCTIMER_HighTrue"/>
                               <setting name="dutyCyclePercent" value="50"/>
                            </struct>
+                           <struct name="1">
+                              <setting name="output" value="kSCTIMER_Out_0"/>
+                              <setting name="level" value="kSCTIMER_HighTrue"/>
+                              <setting name="dutyCyclePercent" value="50"/>
+                           </struct>
                         </array>
                         <setting name="pwmMode" value="kSCTIMER_CenterAlignedPwm"/>
                         <setting name="pwmFrequency" value="24000"/>
@@ -597,6 +609,7 @@
                               <set name="pwms">
                                  <selected>
                                     <id>pwm0</id>
+                                    <id>pwm1</id>
                                  </selected>
                               </set>
                            </struct>

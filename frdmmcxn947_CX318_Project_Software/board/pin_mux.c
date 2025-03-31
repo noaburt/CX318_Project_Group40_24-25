@@ -14,7 +14,8 @@ mcu_data: ksdk2_0
 processor_version: 24.12.10
 pin_labels:
 - {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: MAX_INT, identifier: MAX_INT}
-- {pin_num: L4, pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, label: SCT_OUT}
+- {pin_num: L4, pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, label: SCT_LED_OUT}
+- {pin_num: H3, pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0, label: SCT_MOT_OUT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -219,6 +220,7 @@ PWM_InitPins:
 - options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
 - pin_list:
   - {pin_num: L4, peripheral: SCT0, signal: 'OUT, 4', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22}
+  - {pin_num: H3, peripheral: SCT0, signal: 'OUT, 0', pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -233,6 +235,8 @@ void PWM_InitPins(void)
 {
     /* Enables the clock for PORT1: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port1);
+    /* Enables the clock for PORT2: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Port2);
 
     /* PORT1_22 (pin L4) is configured as SCT0_OUT4 */
     PORT_SetPinMux(PORT1, 22U, kPORT_MuxAlt5);
@@ -243,6 +247,16 @@ void PWM_InitPins(void)
 
                       /* Input Buffer Enable: Enables. */
                       | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT2_2 (pin H3) is configured as SCT0_OUT0 */
+    PORT_SetPinMux(PORT2, 2U, kPORT_MuxAlt4);
+
+    PORT2->PCR[2] = ((PORT2->PCR[2] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_IBE_MASK)))
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
 }
 /***********************************************************************************************************************
  * EOF

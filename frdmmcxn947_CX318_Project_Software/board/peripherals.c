@@ -100,7 +100,7 @@ instance:
       - SCTInputClockSourceFreq: 'custom:0'
       - clockSelect: 'kSCTIMER_Clock_On_Rise_Input_0'
       - enableCounterUnify: 'true'
-      - enableBidirection_l: 'false'
+      - enableBidirection_l: 'true'
       - enableBidirection_h: 'false'
       - prescale_l: '1'
       - prescale_h: '1'
@@ -120,38 +120,48 @@ instance:
         - output: 'kSCTIMER_Out_4'
         - level: 'kSCTIMER_HighTrue'
         - dutyCyclePercent: '50'
+      - 1:
+        - output: 'kSCTIMER_Out_0'
+        - level: 'kSCTIMER_HighTrue'
+        - dutyCyclePercent: '50'
     - pwmMode: 'kSCTIMER_CenterAlignedPwm'
     - pwmFrequency: '24000'
     - events: []
     - states:
       - 0:
-        - pwms: 'pwm0'
+        - pwms: 'pwm0 pwm1'
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
 const sctimer_config_t SCT0_initConfig = {
   .enableCounterUnify = true,
   .clockMode = kSCTIMER_System_ClockMode,
   .clockSelect = kSCTIMER_Clock_On_Rise_Input_0,
-  .enableBidirection_l = false,
+  .enableBidirection_l = true,
   .enableBidirection_h = false,
   .prescale_l = 0U,
   .prescale_h = 0U,
   .outInitState = 0U,
   .inputsync = (uint8_t)(SCT0_INPUTSYNC_0 | SCT0_INPUTSYNC_1 | SCT0_INPUTSYNC_2 | SCT0_INPUTSYNC_3)
 };
-const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[1] = {
+const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[2] = {
   {
     .output = kSCTIMER_Out_4,
     .level = kSCTIMER_HighTrue,
     .dutyCyclePercent = 50U
+  },
+  {
+    .output = kSCTIMER_Out_0,
+    .level = kSCTIMER_HighTrue,
+    .dutyCyclePercent = 50U
   }
 };
-uint32_t SCT0_pwmEvent[1];
+uint32_t SCT0_pwmEvent[2];
 
 static void SCT0_init(void) {
   SCTIMER_Init(SCT0_PERIPHERAL, &SCT0_initConfig);
   /* Initialization of state 0 */
   SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_CenterAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
+  SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[1], kSCTIMER_CenterAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[1]);
   /* Enable interrupt SCT0_IRQN request in the NVIC */
   EnableIRQ(SCT0_IRQN);
   SCTIMER_StartTimer(SCT0_PERIPHERAL, kSCTIMER_Counter_U);
