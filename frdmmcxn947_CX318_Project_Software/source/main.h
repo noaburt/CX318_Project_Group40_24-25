@@ -19,8 +19,7 @@
 #define MAX_HR_DELT 100
 
 /* SCTimer & PWM */
-#define PWM_BASE_DELAY 30000
-#define PWM_MIN_DELAY 5000
+#define PWM_BASE_DELAY 40000
 
 #define SCTIMER_LED_OUT kSCTIMER_Out_4
 #define SCTIMER_MOT_OUT kSCTIMER_Out_0
