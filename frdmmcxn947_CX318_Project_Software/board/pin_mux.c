@@ -16,6 +16,7 @@ pin_labels:
 - {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: MAX_INT, identifier: MAX_INT}
 - {pin_num: L4, pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, label: SCT_LED_OUT}
 - {pin_num: H3, pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0, label: SCT_MOT_OUT}
+- {pin_num: M14, pin_signal: PIO5_9/TAMPER7/ADC1_B17, label: LED_SELECT, identifier: LED_SELECT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -221,6 +222,7 @@ PWM_InitPins:
 - pin_list:
   - {pin_num: L4, peripheral: SCT0, signal: 'OUT, 4', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22}
   - {pin_num: H3, peripheral: SCT0, signal: 'OUT, 0', pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0}
+  - {pin_num: M14, peripheral: GPIO5, signal: 'GPIO, 9', pin_signal: PIO5_9/TAMPER7/ADC1_B17, direction: OUTPUT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -238,6 +240,13 @@ void PWM_InitPins(void)
     /* Enables the clock for PORT2: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port2);
 
+    gpio_pin_config_t LED_SELECT_config = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO5_9 (pin M14)  */
+    GPIO_PinInit(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_PIN, &LED_SELECT_config);
+
     /* PORT1_22 (pin L4) is configured as SCT0_OUT4 */
     PORT_SetPinMux(PORT1, 22U, kPORT_MuxAlt5);
 
@@ -254,6 +263,16 @@ void PWM_InitPins(void)
     PORT2->PCR[2] = ((PORT2->PCR[2] &
                       /* Mask bits to zero which are setting */
                       (~(PORT_PCR_IBE_MASK)))
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    PORT5->PCR[9] = ((PORT5->PCR[9] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_MUX_MASK | PORT_PCR_IBE_MASK)))
+
+                     /* Pin Multiplex Control: PORT5_9 (pin M14) is configured as PIO5_9. */
+                     | PORT_PCR_MUX(PORT5_PCR_MUX_mux00)
 
                      /* Input Buffer Enable: Enables. */
                      | PORT_PCR_IBE(PCR_IBE_ibe1));

@@ -56,7 +56,23 @@ void BOARD_InitPins(void);
  */
 void MAX_InitIPins(void);
 
-#define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
+#define PCR_IBE_ibe1 0x01u        /*!<@brief Input Buffer Enable: Enables */
+#define PORT5_PCR_MUX_mux00 0x00u /*!<@brief Pin Multiplex Control: Alternative 0 (GPIO) */
+
+/*! @name PORT5_9 (coord M14), LED_SELECT
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define PWM_INITPINS_LED_SELECT_GPIO GPIO5               /*!<@brief GPIO peripheral base pointer */
+#define PWM_INITPINS_LED_SELECT_INIT_GPIO_VALUE 0U       /*!<@brief GPIO output initial state */
+#define PWM_INITPINS_LED_SELECT_GPIO_PIN 9U              /*!<@brief GPIO pin number */
+#define PWM_INITPINS_LED_SELECT_GPIO_PIN_MASK (1U << 9U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define PWM_INITPINS_LED_SELECT_PORT PORT5               /*!<@brief PORT peripheral base pointer */
+#define PWM_INITPINS_LED_SELECT_PIN 9U                   /*!<@brief PORT pin number */
+#define PWM_INITPINS_LED_SELECT_PIN_MASK (1U << 9U)      /*!<@brief PORT pin mask */
+                                                         /* @} */
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.

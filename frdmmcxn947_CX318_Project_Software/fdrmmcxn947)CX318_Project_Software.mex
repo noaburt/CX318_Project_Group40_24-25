@@ -28,6 +28,7 @@
                <pin_label pin_num="L14" pin_signal="PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16" label="MAX_INT" identifier="MAX_INT"/>
                <pin_label pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22" label="SCT_LED_OUT"/>
                <pin_label pin_num="H3" pin_signal="PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0" label="SCT_MOT_OUT"/>
+               <pin_label pin_num="M14" pin_signal="PIO5_9/TAMPER7/ADC1_B17" label="LED_SELECT" identifier="LED_SELECT"/>
             </pin_labels>
          </pins_profile>
          <functions_list>
@@ -171,10 +172,20 @@
                         <data>true</data>
                      </feature>
                   </dependency>
+                  <dependency resourceType="SWComponent" resourceId="platform.drivers.gpio" description="Pins initialization requires the GPIO Driver in the project." problem_level="2" source="Pins:PWM_InitPins">
+                     <feature name="enabled" evaluation="equal" configuration="cm33_core0">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
                </dependencies>
                <pins>
                   <pin peripheral="SCT0" signal="OUT, 4" pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22"/>
                   <pin peripheral="SCT0" signal="OUT, 0" pin_num="H3" pin_signal="PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0"/>
+                  <pin peripheral="GPIO5" signal="GPIO, 9" pin_num="M14" pin_signal="PIO5_9/TAMPER7/ADC1_B17">
+                     <pin_features>
+                        <pin_feature name="direction" value="OUTPUT"/>
+                     </pin_features>
+                  </pin>
                </pins>
             </function>
          </functions_list>

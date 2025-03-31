@@ -10,17 +10,24 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
+
+/* HR Sensor*/
 #define MAX_BRIGHTNESS 255
 
 #define MAX_HR 200
 #define MIN_HR 40
 #define MAX_HR_DELT 100
 
+/* SCTimer & PWM */
 #define SCTIMER_LED_OUT kSCTIMER_Out_4
 #define SCTIMER_MOT_OUT kSCTIMER_Out_0
 
 #define MIN_LED_DUTY 15
 #define MAX_MOT_DUTY 50
+
+/* LED */
+#define SET_GRN 0
+#define SET_RED 1
 
 /* States of state machine */
 #define STATE_WAIT 1
@@ -34,8 +41,12 @@
  ******************************************************************************/
 
 void MAIN_CheckErr(status_t result, char* occurrence);
+int MAIN_CalculateScore();
+void MAIN_ShowScore();
 
 void MAX_Begin();
+void MAX_ReadFirst(uint32_t led_min, uint32_t led_max, int i);
+void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, uint32_t brightness);
 
 void PWM_Delay();
 void PWM_Init();
@@ -58,7 +69,14 @@ int32_t heart_rate; 			// Heart rate value
 int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
-uint8_t sctimerIsrFlag;
 uint8_t brightnessUp;
+
 uint8_t ledDutycycle;
 uint8_t motorDutycycle;
+
+uint8_t runTimer;
+uint32_t playerTime;
+uint32_t playerBuzzes;
+
+
+
