@@ -6,75 +6,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <main.h>
 #include <max30102.h>
 #include <algorithm.h>
 #include <stdlib.h>
 #include <math.h>
-#include "fsl_device_registers.h"
-#include "fsl_debug_console.h"
-#include "pin_mux.h"
-#include "peripherals.h"
-#include "clock_config.h"
-#include "board.h"
-
-#include "fsl_clock.h"
-
-/*******************************************************************************
- * Definitions
- ******************************************************************************/
-#define MAX_BRIGHTNESS 255
-
-#define MAX_HR 200
-#define MIN_HR 40
-#define MAX_HR_DELT 100
-
-#define SCTIMER_LED_OUT kSCTIMER_Out_4
-#define SCTIMER_MOT_OUT kSCTIMER_Out_0
-
-#define MIN_LED_DUTY 15
-#define MAX_MOT_DUTY 50
-
-/* States of state machine */
-#define STATE_WAIT 1
-#define STATE_PLAY 2
-#define STATE_BREAK 3
-#define STATE_FINISH 4
-
-
-/*******************************************************************************
- * Prototypes
- ******************************************************************************/
-
-void MAIN_CheckErr(status_t result, char* occurrence);
-
-void MAX_Begin();
-
-void PWM_Delay();
-void PWM_Init();
-void PWM_Update();
-
-
-/*******************************************************************************
- * Variables
- ******************************************************************************/
-uint8_t STATE;
-
-uint32_t rest_hr;
-uint32_t prev_hr;
-
-uint32_t ir_led_buffer[500]; 	// IR LED sensor data
-int32_t ir_buffer_len; 			// IR data length
-uint32_t red_buffer[500];		// Red LED sensor data
-int32_t spo2; 					// SPo2 value
-int8_t spo2_valid; 				// SPo2 calculation validity
-int32_t heart_rate; 			// Heart rate value
-int8_t hr_valid;				// Heart rate calculation validity
-uint8_t dummy;					// General 'dummy' variable
-
-uint8_t sctimerIsrFlag = 0U;
-uint8_t brightnessUp = 1U;
-uint8_t ledDutycycle;
-uint8_t motorDutycycle;
 
 /*******************************************************************************
  * Code
@@ -106,6 +42,7 @@ void MAX_Begin() {
 	MAIN_CheckErr(MAX_Start(), "Max Start");
 }
 
+/* Small delay */
 void PWM_Delay() {
 	volatile uint32_t i = 0U;
 
@@ -197,13 +134,16 @@ int main(void)
 	int32_t brightness;
 	float tmp;
 
+	/* PWM variables */
+	sctimerIsrFlag = 0U;
+	brightnessUp = 1U;
+
 	/* Prepare for reading data */
 	brightness = 0;
 	led_min = 0x3FFFF;
 	led_max = 0;
 
-	/* Heart Rate to Led PWM Variables */
-	hr_factor = 0;
+	/* Heart Rate to Led PWM variables */
 	ledDutycycle = 10U;
 	rest_hr = MIN_HR;
 
@@ -270,11 +210,6 @@ int main(void)
 
 			}
 
-			/*PRINTF(
-					"red = %d, ir = %d, HR = %d, HRvalid = %d, SpO2 = %d, SpO2valid = %d\r\n",
-					red_buffer[i], ir_led_buffer[i], heart_rate, hr_valid, spo2, spo2_valid
-			);*/
-
 			PWM_Delay(); //Delay instead of PRINTF, loop too fast for MAX?
 		}
 
@@ -296,6 +231,5 @@ int main(void)
 				"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, ledDutycycle
 		);
 
-		//PWM_Update();
 	}
 }
