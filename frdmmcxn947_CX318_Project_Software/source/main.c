@@ -132,18 +132,25 @@ void PWM_Delay() {
 
 /* Use interrupt to update the PWM dutycycle on output */
 void PWM_Update() {
-	/* Disable interrupt to retain current dutycycle for a few seconds */
-	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
-	/* Update PWM duty cycles */
-	SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_LED_OUT, ledDutycycle, SCT0_pwmEvent[0]);
-	SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_MOT_OUT, motorDutycycle, SCT0_pwmEvent[0]);
+	if (sctimerFlag == 1) {
+		/* Disable interrupt to retain current dutycycle for a few seconds */
+		SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
-	/* Delay to view the updated PWM dutycycle */
-	//PWM_Delay();
+		/* Update PWM duty cycles */
+		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_LED_OUT, ledDutycycle, SCT0_pwmEvent[0]);
+		/* Delay to view the updated PWM dutycycle */
+		PWM_Delay();
 
-	/* Enable interrupt flag to update PWM dutycycle */
-	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_MOT_OUT, motorDutycycle, SCT0_pwmEvent[0]);
+		/* Delay to view the updated PWM dutycycle */
+		PWM_Delay();
+
+		sctimerFlag = 0U;
+
+		/* Enable interrupt flag to update PWM dutycycle */
+		SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+	}
 }
 
 /* SCT0_IRQn interrupt handler */
@@ -179,6 +186,7 @@ void SCT0_IRQHANDLER(void) {
 	case STATE_WAIT:
 		/* Set to flash green LEDs, don't spin motor */
 		motorDutycycle = 0U;
+		sctimerFlag = 1U;
 
 		if (brightnessUp == 1U) {
 			/* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
@@ -186,22 +194,19 @@ void SCT0_IRQHANDLER(void) {
 			*/
 			if (++ledDutycycle >= 99U) {
 				ledDutycycle = 99U;
-				brightnessUp     = false;
+				brightnessUp     = 0U;
 			}
 		} else {
 			/* Decrease duty cycle until it reach limited value */
 			if (--ledDutycycle == 1U){
-				brightnessUp = true;
+				brightnessUp = 1U;
 			}
 		}
+		//PWM_Delay();
 
 		break;
 
 	}
-
-
-	/* Update pwm speed */
-	PWM_Update();
 
 	/* Clear status flags */
 	SCTIMER_ClearStatusFlags(SCT0_PERIPHERAL, status_flags);
@@ -252,7 +257,8 @@ int main(void)
 	MAIN_ResetGame();
 
 	/* PWM Variables */
-	brightnessUp = 0U;
+	brightnessUp = 1U;
+	sctimerFlag = 0U;
 
 	/* Heart Rate to Led PWM variables */
 	ledDutycycle = 10U;
@@ -320,6 +326,7 @@ int main(void)
 
 		case STATE_WAIT:
 			/* Set to flash green LEDs */
+			//PRINTF("WAIT\r\n");
 			GPIO_PinWrite(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_GPIO_PIN, SET_GRN);
 
 			break;
@@ -333,5 +340,8 @@ int main(void)
 			break;
 
 		}
+
+		/* Update pwm speed */
+		PWM_Update();
 	}
 }

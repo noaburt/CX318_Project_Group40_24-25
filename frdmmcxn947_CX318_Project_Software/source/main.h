@@ -70,6 +70,7 @@ int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
 uint8_t brightnessUp;
+uint8_t sctimerFlag;
 
 uint8_t ledDutycycle;
 uint8_t motorDutycycle;

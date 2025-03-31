@@ -522,11 +522,6 @@
                   <data type="Version" maxValue="2.5.99">2.4.0</data>
                </feature>
             </dependency>
-            <dependency resourceType="Tool" resourceId="Clocks" description="The Clocks tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
-               <feature name="enabled" evaluation="equal">
-                  <data>true</data>
-               </feature>
-            </dependency>
          </dependencies>
          <generated_project_files>
             <file path="board/peripherals.c" update_enabled="true"/>
@@ -608,8 +603,8 @@
                            </struct>
                            <struct name="1">
                               <setting name="output" value="kSCTIMER_Out_0"/>
-                              <setting name="level" value="kSCTIMER_HighTrue"/>
-                              <setting name="dutyCyclePercent" value="50"/>
+                              <setting name="level" value="kSCTIMER_LowTrue"/>
+                              <setting name="dutyCyclePercent" value="0"/>
                            </struct>
                         </array>
                         <setting name="pwmMode" value="kSCTIMER_CenterAlignedPwm"/>
