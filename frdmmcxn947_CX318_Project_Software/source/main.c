@@ -124,7 +124,7 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 void PWM_Delay() {
 	volatile uint32_t i = 0U;
 
-	for (i = 0U; i < 80000U; ++i)
+	for (i = 0U; i < PWM_DELAY; ++i)
 	{
 		__asm("NOP"); /* delay */
 	}
