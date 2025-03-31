@@ -42,14 +42,12 @@ void MAIN_ShowScore() {
 void MAIN_ResetGame() {
 	runTimer = 0U;
 	playerBuzzes = 0U;
-	playerTime = 0U;
+	playerTimer = 0U;
 }
 
 /* Setup and start MAX30102 */
 void MAX_Begin() {
 	MAX_Init();
-
-	SDK_DelayAtLeastUs(1000000, CLOCK_GetFreq(kCLOCK_CoreSysClk));
 
 	MAIN_CheckErr(MAX_Reset(), "Max Reset");
 
@@ -81,6 +79,7 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 
 	/* Dump first 100 sets of samples in memory, shift last 400 sets to top */
 	for (i = 100; i < 500; i++) {
+
 		red_buffer[i-100] = red_buffer[i];
 		ir_led_buffer[i-100] = ir_led_buffer[i];
 
@@ -91,9 +90,11 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 
 	/* Take 100 sets of samples before calculating hr */
 	for (i = 400; i < 500; i++) {
+
 		prev_data = red_buffer[i-1];
 
 		while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1) {}
+
 
 		MAIN_CheckErr(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
 
@@ -114,17 +115,15 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 			if(brightness > MAX_BRIGHTNESS) { brightness = MAX_BRIGHTNESS; }
 
 		}
-
-		PWM_Delay(); //Delay instead of PRINTF, loop too fast for MAX?
 	}
 }
 
 
 /* Small delay */
-void PWM_Delay() {
+void PWM_Delay(uint32_t delay) {
 	volatile uint32_t i = 0U;
 
-	for (i = 0U; i < PWM_DELAY; ++i)
+	for (i = 0U; i < delay; ++i)
 	{
 		__asm("NOP"); /* delay */
 	}
@@ -133,18 +132,19 @@ void PWM_Delay() {
 /* Use interrupt to update the PWM dutycycle on output */
 void PWM_Update() {
 
-	if (sctimerFlag == 1) {
+	if (sctimerFlag == 1U) {
+
 		/* Disable interrupt to retain current dutycycle for a few seconds */
 		SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
 		/* Update PWM duty cycles */
-		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_LED_OUT, ledDutycycle, SCT0_pwmEvent[0]);
+		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_LED_OUT, ledDutyCycle, SCT0_pwmEvent[0]);
 		/* Delay to view the updated PWM dutycycle */
-		PWM_Delay();
+		PWM_Delay(ledDelay);
 
-		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_MOT_OUT, motorDutycycle, SCT0_pwmEvent[0]);
+		SCTIMER_UpdatePwmDutycycle(SCT0, SCTIMER_MOT_OUT, motorDutyCycle, SCT0_pwmEvent[0]);
 		/* Delay to view the updated PWM dutycycle */
-		PWM_Delay();
+		PWM_Delay(motorDelay);
 
 		sctimerFlag = 0U;
 
@@ -160,21 +160,20 @@ void SCT0_IRQHANDLER(void) {
 
 	/* Place your interrupt code here */
 
+	sctimerFlag = 1U;
+
 	switch (STATE) {
 
 	case STATE_PLAY:
 		/* Logic while playing game */
 
-		/* Map heart rate from rest -> MAX to 0% -> 99% duty cycles */
+		/* Map heart rate from rest -> MAX to blinking speed */
 		double hr_factor = prev_hr - rest_hr;
 		hr_factor /= MAX_HR; // ratio of current VALID hr to max heart rate (of range rest -> MAX)
 
-		ledDutycycle = (uint8_t) ceil(hr_factor * 100U);
-		motorDutycycle = ledDutycycle;
+		motorDutyCycle = (uint8_t) ceil(hr_factor * 100U);
 
-		if (ledDutycycle < MIN_LED_DUTY) { ledDutycycle = MIN_LED_DUTY; }
-		if (motorDutycycle > MAX_MOT_DUTY) { motorDutycycle = MAX_MOT_DUTY; }
-
+		if (motorDutyCycle > MAX_MOT_DUTY) { motorDutyCycle = MAX_MOT_DUTY; }
 		break;
 
 	case STATE_BREAK:
@@ -185,27 +184,26 @@ void SCT0_IRQHANDLER(void) {
 
 	case STATE_WAIT:
 		/* Set to flash green LEDs, don't spin motor */
-		motorDutycycle = 0U;
-		sctimerFlag = 1U;
-
-		if (brightnessUp == 1U) {
-			/* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
-			* as channel interrupt will not be set for 100%
-			*/
-			if (++ledDutycycle >= 99U) {
-				ledDutycycle = 99U;
-				brightnessUp     = 0U;
-			}
-		} else {
-			/* Decrease duty cycle until it reach limited value */
-			if (--ledDutycycle == 1U){
-				brightnessUp = 1U;
-			}
-		}
-		//PWM_Delay();
+		motorDutyCycle = 0U;
+		ledDelay = PWM_BASE_DELAY;
 
 		break;
 
+	}
+
+	if (brightnessUp == 1U) {
+		/* Increase duty cycle until it reach limited value, don't want to go upto 100% duty cycle
+		* as channel interrupt will not be set for 100%
+		*/
+		if (++ledDutyCycle >= 99U) {
+			ledDutyCycle = 99U;
+			brightnessUp     = 0U;
+		}
+	} else {
+		/* Decrease duty cycle until it reach limited value */
+		if (--ledDutyCycle == 1U){
+			brightnessUp = 1U;
+		}
 	}
 
 	/* Clear status flags */
@@ -217,6 +215,8 @@ void SCT0_IRQHANDLER(void) {
     __DSB();
   #endif
 }
+
+
 
 
 /*!
@@ -240,11 +240,6 @@ int main(void)
 	BOARD_InitDebugConsole();
 
 	BOARD_InitPeripherals();
-	/* Enable interrupt flag for event associated with out 0 and 4, we use the interrupt to update dutycycle */
-	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-
-	/* Receive notification when event is triggered */
-	SCTIMER_SetCallback(SCT0, SCT0_IRQHANDLER, SCT0_pwmEvent[0]);
 
 	MAX_Begin();
 
@@ -253,15 +248,17 @@ int main(void)
 	int i;
 	int32_t brightness;
 
-	/* Timer variables */
-	MAIN_ResetGame();
-
 	/* PWM Variables */
 	brightnessUp = 1U;
 	sctimerFlag = 0U;
 
 	/* Heart Rate to Led PWM variables */
-	ledDutycycle = 10U;
+	ledDelay = PWM_BASE_DELAY;
+	motorDelay = PWM_BASE_DELAY;
+
+	ledDutyCycle = 100U;
+	motorDutyCycle = 0U;
+
 	rest_hr = MIN_HR;
 
 
@@ -276,10 +273,17 @@ int main(void)
 	ir_buffer_len = 500;
 
 	/* Game starts in WAIT */
-	STATE = STATE_WAIT;
+	STATE = STATE_PLAY;
+
+	MAIN_ResetGame();
+
+	/* Enable interrupt flag for event associated with out 0 and 4, we use the interrupt to update dutycycle */
+	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
+	/* Receive notification when event is triggered */
+	SCTIMER_SetCallback(SCT0, SCT0_IRQHANDLER, SCT0_pwmEvent[0]);
 
 	while (1) {
-
 		switch (STATE) {
 
 		case STATE_PLAY:
@@ -288,7 +292,6 @@ int main(void)
 
 #ifndef MAX_FIRST_READING
 #define MAX_FIRST_READING
-
 			MAX_ReadFirst(led_min, led_max, i);
 
 			prev_data = red_buffer[i];
@@ -300,6 +303,7 @@ int main(void)
 			led_min = 0x3FFFF;
 			led_max = 0;
 			MAX_ReadAll(led_min, led_max, prev_data, i, brightness);
+
 			maxim_heart_rate_and_oxygen_saturation(
 					ir_led_buffer, ir_buffer_len, red_buffer,
 					&spo2, &spo2_valid,
@@ -315,7 +319,7 @@ int main(void)
 			if (prev_hr < rest_hr) { rest_hr = prev_hr; }
 
 			PRINTF(
-					"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, ledDutycycle
+					"HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, ledDutyCycle
 			);
 
 			break;
@@ -340,8 +344,5 @@ int main(void)
 			break;
 
 		}
-
-		/* Update pwm speed */
-		PWM_Update();
 	}
 }

@@ -70,6 +70,7 @@ instance:
   - nvic:
     - interrupt_table:
       - 0: []
+      - 1: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -110,8 +111,8 @@ instance:
     - interrupt:
       - IRQn: 'SCT0_IRQn'
       - enable_interrrupt: 'enabled'
-      - enable_priority: 'false'
-      - priority: '0'
+      - enable_priority: 'true'
+      - priority: '1'
       - enable_custom_name: 'false'
     - enableLTimer: 'true'
     - enableHTimer: 'false'
@@ -162,9 +163,74 @@ static void SCT0_init(void) {
   /* Initialization of state 0 */
   SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_CenterAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
   SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[1], kSCTIMER_CenterAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[1]);
+  /* Interrupt vector SCT0_IRQn priority settings in the NVIC. */
+  NVIC_SetPriority(SCT0_IRQN, SCT0_IRQ_PRIORITY);
   /* Enable interrupt SCT0_IRQN request in the NVIC */
   EnableIRQ(SCT0_IRQN);
   SCTIMER_StartTimer(SCT0_PERIPHERAL, kSCTIMER_Counter_U);
+}
+
+/***********************************************************************************************************************
+ * CTIMER0 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'CTIMER0'
+- type: 'ctimer'
+- mode: 'Capture_Match'
+- custom_name_enabled: 'false'
+- type_id: 'ctimer_2.2.2'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'CTIMER0'
+- config_sets:
+  - fsl_ctimer:
+    - ctimerConfig:
+      - mode: 'kCTIMER_TimerMode'
+      - clockSource: 'FunctionClock'
+      - clockSourceFreq: 'ClocksTool_DefaultInit'
+      - timerPrescaler: '1'
+    - EnableTimerInInit: 'false'
+    - matchChannels:
+      - 0:
+        - matchChannelPrefixId: 'Match_0'
+        - matchChannel: 'kCTIMER_Match_0'
+        - matchValueStr: '150000'
+        - enableCounterReset: 'true'
+        - enableCounterStop: 'false'
+        - outControl: 'kCTIMER_Output_NoAction'
+        - outPinInitValue: 'low'
+        - enableInterrupt: 'true'
+    - captureChannels: []
+    - interruptCallbackConfig:
+      - interrupt:
+        - IRQn: 'CTIMER0_IRQn'
+        - enable_priority: 'true'
+        - priority: '0'
+      - callback: 'kCTIMER_NoCallback'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+const ctimer_config_t CTIMER0_config = {
+  .mode = kCTIMER_TimerMode,
+  .input = kCTIMER_Capture_0,
+  .prescale = 0
+};
+const ctimer_match_config_t CTIMER0_Match_0_config = {
+  .matchValue = 149999,
+  .enableCounterReset = true,
+  .enableCounterStop = false,
+  .outControl = kCTIMER_Output_NoAction,
+  .outPinInitState = false,
+  .enableInterrupt = true
+};
+
+static void CTIMER0_init(void) {
+  /* CTIMER0 peripheral initialization */
+  CTIMER_Init(CTIMER0_PERIPHERAL, &CTIMER0_config);
+  /* Interrupt vector CTIMER0_IRQn priority settings in the NVIC. */
+  NVIC_SetPriority(CTIMER0_TIMER_IRQN, CTIMER0_TIMER_IRQ_PRIORITY);
+  /* Match channel 0 of CTIMER0 peripheral initialization */
+  CTIMER_SetupMatch(CTIMER0_PERIPHERAL, CTIMER0_MATCH_0_CHANNEL, &CTIMER0_Match_0_config);
 }
 
 /***********************************************************************************************************************
@@ -174,6 +240,7 @@ void BOARD_InitPeripherals(void)
 {
   /* Initialize components */
   SCT0_init();
+  CTIMER0_init();
 }
 
 /***********************************************************************************************************************

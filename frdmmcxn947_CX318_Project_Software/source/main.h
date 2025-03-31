@@ -19,11 +19,12 @@
 #define MAX_HR_DELT 100
 
 /* SCTimer & PWM */
-#define PWM_DELAY 60000
+#define PWM_BASE_DELAY 80000
+#define PWM_MIN_DELAY 10000
+
 #define SCTIMER_LED_OUT kSCTIMER_Out_4
 #define SCTIMER_MOT_OUT kSCTIMER_Out_0
 
-#define MIN_LED_DUTY 15
 #define MAX_MOT_DUTY 50
 
 /* LED */
@@ -73,11 +74,13 @@ uint8_t dummy;					// General 'dummy' variable
 uint8_t brightnessUp;
 uint8_t sctimerFlag;
 
-uint8_t ledDutycycle;
-uint8_t motorDutycycle;
+uint8_t ledDutyCycle;
+uint8_t motorDutyCycle;
+uint32_t ledDelay;
+uint32_t motorDelay;
 
 uint8_t runTimer;
-uint32_t playerTime;
+uint32_t playerTimer;
 uint32_t playerBuzzes;
 
 
