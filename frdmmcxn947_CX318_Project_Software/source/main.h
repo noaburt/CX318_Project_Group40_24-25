@@ -19,8 +19,8 @@
 #define MAX_HR_DELT 100
 
 /* SCTimer & PWM */
-#define PWM_BASE_DELAY 80000
-#define PWM_MIN_DELAY 10000
+#define PWM_BASE_DELAY 30000
+#define PWM_MIN_DELAY 5000
 
 #define SCTIMER_LED_OUT kSCTIMER_Out_4
 #define SCTIMER_MOT_OUT kSCTIMER_Out_0
@@ -50,8 +50,7 @@ void MAX_Begin();
 void MAX_ReadFirst(uint32_t led_min, uint32_t led_max, int i);
 void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, uint32_t brightness);
 
-void PWM_Delay();
-void PWM_Init();
+void PWM_Delay(uint32_t delay);
 void PWM_Update();
 
 /*******************************************************************************
