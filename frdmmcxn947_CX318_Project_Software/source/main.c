@@ -221,6 +221,56 @@ void SCT0_IRQHANDLER(void) {
   #endif
 }
 
+/* GPIO10_IRQn interrupt handler */
+void GPIO1_INT_0_IRQHANDLER(void) {
+  /* Get pin flags 0 */
+  uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
+
+  /* Place your interrupt code here */
+  switch (STATE) {
+
+  	case STATE_PLAY:
+  		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 0) {
+			STATE = STATE_BREAK;
+			break;
+		}
+
+  		if (GPIO_PinRead(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_GPIO_PIN) == 0) {
+			STATE = STATE_FINISH;
+		}
+
+  		break;
+
+  	case STATE_BREAK:
+  		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 1) {
+			STATE = STATE_PLAY;
+		}
+
+  		break;
+
+  	case STATE_WAIT:
+  		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {
+  			STATE = STATE_PLAY;
+  		}
+
+  		break;
+
+  	case STATE_FINISH:
+  		break;
+
+  	}
+
+  /* Clear pin flags 0 */
+  GPIO_GpioClearInterruptChannelFlags(GPIO1, pin_flags0, 0U);
+
+  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+     Store immediate overlapping exception return operation might vector to incorrect interrupt. */
+  #if defined __CORTEX_M && (__CORTEX_M == 4U)
+    __DSB();
+  #endif
+}
+
+
 
 /*!
  * @brief Main function
