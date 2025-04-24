@@ -35,7 +35,7 @@ int MAIN_CalculateScore() {
 
 /* Show score to user */
 void MAIN_ShowScore() {
-	PRINTF("FINAL SCORE: %d\r\n", MAIN_CalculateScore());
+	PRINTF("FINAL SCORE: %d\r\n", displayScore);
 }
 
 /* Reset score keeping values */
@@ -337,7 +337,10 @@ int main(void)
 	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
 
-	/* Game starts in WAIT */
+	/* Wait until hook is placed on start */
+	while (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1)
+
+	/* Game starts in waiting state */
 	STATE = STATE_WAIT;
 
 	uint8_t FIRST_500 = 0U;
