@@ -30,7 +30,7 @@ void MAIN_CheckErr(status_t result, char* occurrence) {
 /* Calculate player score --------------------------------------------------------------------------------------- TODO */
 int MAIN_CalculateScore() {
 
-	return 5;
+	return 5U;
 }
 
 /* Show score to user */
@@ -43,6 +43,7 @@ void MAIN_ResetGame() {
 	runTimer = 0U;
 	playerBuzzes = 0U;
 	playerTime = 0U;
+	displayScore = 0U;
 
 	motorDelay = PWM_BASE_DELAY;
 	ledDelay = PWM_BASE_DELAY;
@@ -222,6 +223,7 @@ void SCT0_IRQHANDLER(void) {
 }
 
 /* GPIO10_IRQn interrupt handler */
+/* Change state interrupt */
 void GPIO1_INT_0_IRQHANDLER(void) {
   /* Get pin flags 0 */
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
@@ -236,6 +238,12 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		}
 
   		if (GPIO_PinRead(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_GPIO_PIN) == 0) {
+			STATE = STATE_FINISH;
+			displayScore = MAIN_CalculateScore();
+			break;
+		}
+
+  		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
 			STATE = STATE_FINISH;
 		}
 

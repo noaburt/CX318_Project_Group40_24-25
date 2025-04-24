@@ -80,6 +80,7 @@ uint32_t motorDelay;
 uint8_t runTimer;
 uint32_t playerTime;
 uint32_t playerBuzzes;
+uint32_t displayScore;
 
 
 
