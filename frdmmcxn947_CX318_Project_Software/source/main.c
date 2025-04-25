@@ -225,48 +225,55 @@ void SCT0_IRQHANDLER(void) {
 /* GPIO10_IRQn interrupt handler */
 /* Change state interrupt */
 void GPIO1_INT_0_IRQHANDLER(void) {
+	PRINTF("INTERRUPT");
   /* Get pin flags 0 */
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
 
-  /* Place your interrupt code here */
+  /* Interrupt code here*/
   switch (STATE) {
 
-  	case STATE_PLAY:
-  		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 0) {
+	case STATE_PLAY:
+
+		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 0) {
 			STATE = STATE_BREAK;
+			PRINTF("BREAK from PLAY\r\n");
 			break;
 		}
 
-  		if (GPIO_PinRead(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_GPIO_PIN) == 0) {
+		if (GPIO_PinRead(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_GPIO_PIN) == 0) {
 			STATE = STATE_FINISH;
+			PRINTF("FINISH from PLAY\r\n");
 			displayScore = MAIN_CalculateScore();
 			break;
 		}
 
-  		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
+		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
 			STATE = STATE_FINISH;
+			PRINTF("RESTART from PLAY\r\n");
 		}
 
-  		break;
+		break;
 
-  	case STATE_BREAK:
-  		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 1) {
+	case STATE_BREAK:
+
+		PRINTF("BREAK -> ");
+
+	case STATE_WAIT:
+
+		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {
 			STATE = STATE_PLAY;
+			PRINTF("PLAY from WAIT\r\n");
 		}
 
-  		break;
+		break;
 
-  	case STATE_WAIT:
-  		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {
-  			STATE = STATE_PLAY;
-  		}
+	case STATE_FINISH:
 
-  		break;
+		STATE = STATE_WAIT;
+		PRINTF("WAIT from FINISH\r\n");
+		break;
 
-  	case STATE_FINISH:
-  		break;
-
-  	}
+	}
 
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO1, pin_flags0, 0U);
@@ -338,7 +345,7 @@ int main(void)
 	ir_buffer_len = 500;
 
 	/* Wait until hook is placed on start */
-	while (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1)
+	while (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {}
 
 	/* Game starts in waiting state */
 	STATE = STATE_WAIT;
@@ -382,26 +389,23 @@ int main(void)
 			if (prev_hr < rest_hr) { rest_hr = prev_hr; }
 
 			PRINTF("HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, ledDutycycle);
-
 			break;
 
 		case STATE_BREAK:
 			/* Pause timer and do same as WAIT*/
 			runTimer = 0U;
+			PRINTF("BREAK -> ");
 
 		case STATE_WAIT:
 			/* Set to flash green LEDs */
 			//PRINTF("WAIT\r\n");
 			GPIO_PinWrite(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_GPIO_PIN, SET_GRN);
-
 			break;
 
 		case STATE_FINISH:
-			/* Display score, reset, and set STATE_WAIT */
+			/* Display score, reset */
 			MAIN_ShowScore();
 			MAIN_ResetGame();
-
-			STATE = STATE_WAIT;
 			break;
 
 		}
