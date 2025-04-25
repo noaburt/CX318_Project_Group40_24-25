@@ -225,7 +225,6 @@ void SCT0_IRQHANDLER(void) {
 /* GPIO10_IRQn interrupt handler */
 /* Change state interrupt */
 void GPIO1_INT_0_IRQHANDLER(void) {
-	PRINTF("INTERRUPT");
   /* Get pin flags 0 */
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
 
@@ -233,6 +232,11 @@ void GPIO1_INT_0_IRQHANDLER(void) {
   switch (STATE) {
 
 	case STATE_PLAY:
+
+		if (GPIO_PinRead(BOARD_INITPINS_IO_TRACK_GPIO, BOARD_INITPINS_IO_TRACK_GPIO_PIN) == 0) {
+			playerBuzzes++;
+			PRINTF("BUZZ\r\n");
+		}
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 0) {
 			STATE = STATE_BREAK;
@@ -256,11 +260,16 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 	case STATE_BREAK:
 
-		PRINTF("BREAK -> ");
+		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
+			STATE = STATE_PLAY;
+			PRINTF("PLAY from BREAK\r\n");
+		}
+
+		break;
 
 	case STATE_WAIT:
 
-		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {
+		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
 			STATE = STATE_PLAY;
 			PRINTF("PLAY from WAIT\r\n");
 		}
@@ -394,7 +403,6 @@ int main(void)
 		case STATE_BREAK:
 			/* Pause timer and do same as WAIT*/
 			runTimer = 0U;
-			PRINTF("BREAK -> ");
 
 		case STATE_WAIT:
 			/* Set to flash green LEDs */

@@ -131,7 +131,7 @@
                   <pin peripheral="GPIO1" signal="GPIO, 22" pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22">
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
-                        <pin_feature name="gpio_per_interrupt" value="kGPIO_FlagFallingEdge"/>
+                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptFallingEdge"/>
                         <pin_feature name="pull_select" value="up"/>
                         <pin_feature name="pull_enable" value="enable"/>
                      </pin_features>
