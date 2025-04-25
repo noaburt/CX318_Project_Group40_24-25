@@ -61,10 +61,10 @@ BOARD_InitPins:
   - {pin_num: D2, peripheral: GPIO1, signal: 'GPIO, 12', pin_signal: PIO1_12/WUU0_IN12/TRACE_CLK/FC4_P4/FC3_P0/CT2_MAT2/SCT0_OUT4/FLEXIO0_D20/SMARTDMA_PIO8/PLU_OUT2/ENET0_RXER/CAN1_RXD/TSI0_CH21/ADC1_A12,
     direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge, pull_select: up, pull_enable: enable}
   - {pin_num: D1, peripheral: GPIO1, signal: 'GPIO, 13', pin_signal: PIO1_13/TRIG_IN3/FC4_P5/FC3_P1/CT2_MAT3/SCT0_OUT5/FLEXIO0_D21/SMARTDMA_PIO9/PLU_OUT3/ENET0_RXDV/CAN1_TXD/TSI0_CH22/ADC1_A13,
-    direction: INPUT, gpio_per_interrupt: kGPIO_InterruptFallingEdge, pull_select: up, pull_enable: enable}
+    direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge, pull_select: up, pull_enable: enable}
   - {pin_num: L4, peripheral: GPIO1, signal: 'GPIO, 22', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, direction: INPUT,
-    gpio_per_interrupt: kGPIO_InterruptFallingEdge, pull_select: up, pull_enable: enable}
-  - {pin_num: M4, peripheral: GPIO1, signal: 'GPIO, 23', pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptFallingEdge,
+    gpio_per_interrupt: kGPIO_InterruptEitherEdge, pull_select: up, pull_enable: enable}
+  - {pin_num: M4, peripheral: GPIO1, signal: 'GPIO, 23', pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge,
     pull_select: up, pull_enable: enable}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
@@ -116,14 +116,14 @@ void BOARD_InitPins(void)
     /* Interrupt configuration on GPIO1_12 (pin D2): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_PIN, kGPIO_InterruptEitherEdge);
 
-    /* Interrupt configuration on GPIO1_13 (pin D1): Interrupt on falling edge */
-    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, kGPIO_InterruptFallingEdge);
+    /* Interrupt configuration on GPIO1_13 (pin D1): Interrupt on either edge */
+    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, kGPIO_InterruptEitherEdge);
 
-    /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt on falling edge */
-    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_PIN, kGPIO_InterruptFallingEdge);
+    /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt on either edge */
+    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_PIN, kGPIO_InterruptEitherEdge);
 
-    /* Interrupt configuration on GPIO1_23 (pin M4): Interrupt on falling edge */
-    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_TRACK_GPIO, BOARD_INITPINS_IO_TRACK_PIN, kGPIO_InterruptFallingEdge);
+    /* Interrupt configuration on GPIO1_23 (pin M4): Interrupt on either edge */
+    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_TRACK_GPIO, BOARD_INITPINS_IO_TRACK_PIN, kGPIO_InterruptEitherEdge);
 
     const port_pin_config_t port0_2_pinB16_config = {/* Internal pull-up/down resistor is disabled */
                                                      .pullSelect = kPORT_PullDisable,

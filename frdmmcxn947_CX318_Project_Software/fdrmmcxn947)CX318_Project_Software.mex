@@ -123,7 +123,7 @@
                   <pin peripheral="GPIO1" signal="GPIO, 13" pin_num="D1" pin_signal="PIO1_13/TRIG_IN3/FC4_P5/FC3_P1/CT2_MAT3/SCT0_OUT5/FLEXIO0_D21/SMARTDMA_PIO9/PLU_OUT3/ENET0_RXDV/CAN1_TXD/TSI0_CH22/ADC1_A13">
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
-                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptFallingEdge"/>
+                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptEitherEdge"/>
                         <pin_feature name="pull_select" value="up"/>
                         <pin_feature name="pull_enable" value="enable"/>
                      </pin_features>
@@ -131,7 +131,7 @@
                   <pin peripheral="GPIO1" signal="GPIO, 22" pin_num="L4" pin_signal="PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22">
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
-                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptFallingEdge"/>
+                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptEitherEdge"/>
                         <pin_feature name="pull_select" value="up"/>
                         <pin_feature name="pull_enable" value="enable"/>
                      </pin_features>
@@ -139,7 +139,7 @@
                   <pin peripheral="GPIO1" signal="GPIO, 23" pin_num="M4" pin_signal="PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23">
                      <pin_features>
                         <pin_feature name="direction" value="INPUT"/>
-                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptFallingEdge"/>
+                        <pin_feature name="gpio_per_interrupt" value="kGPIO_InterruptEitherEdge"/>
                         <pin_feature name="pull_select" value="up"/>
                         <pin_feature name="pull_enable" value="enable"/>
                      </pin_features>
