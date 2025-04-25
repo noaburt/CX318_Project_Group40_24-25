@@ -227,6 +227,7 @@ void SCT0_IRQHANDLER(void) {
 void GPIO1_INT_0_IRQHANDLER(void) {
   /* Get pin flags 0 */
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
+  uint8_t NEW_STATE = STATE;
 
   /* Interrupt code here*/
   switch (STATE) {
@@ -239,20 +240,20 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		}
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 0) {
-			STATE = STATE_BREAK;
+			NEW_STATE = STATE_BREAK;
 			PRINTF("BREAK from PLAY\r\n");
 			break;
 		}
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_GPIO_PIN) == 0) {
-			STATE = STATE_FINISH;
+			NEW_STATE = STATE_FINISH;
 			PRINTF("FINISH from PLAY\r\n");
 			displayScore = MAIN_CalculateScore();
 			break;
 		}
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
-			STATE = STATE_FINISH;
+			NEW_STATE = STATE_FINISH;
 			PRINTF("RESTART from PLAY\r\n");
 		}
 
@@ -261,7 +262,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 	case STATE_BREAK:
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
-			STATE = STATE_PLAY;
+			NEW_STATE = STATE_PLAY;
 			PRINTF("PLAY from BREAK\r\n");
 		}
 
@@ -270,7 +271,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 	case STATE_WAIT:
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
-			STATE = STATE_PLAY;
+			NEW_STATE = STATE_PLAY;
 			PRINTF("PLAY from WAIT\r\n");
 		}
 
@@ -278,11 +279,13 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 	case STATE_FINISH:
 
-		STATE = STATE_WAIT;
+		NEW_STATE = STATE_WAIT;
 		PRINTF("WAIT from FINISH\r\n");
 		break;
 
 	}
+
+  STATE = NEW_STATE;
 
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO1, pin_flags0, 0U);
@@ -352,9 +355,11 @@ int main(void)
 
 	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
+	PRINTF("INITIALISED\r\n");
 
 	/* Wait until hook is placed on start */
 	while (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {}
+	PRINTF("BEGINNING\r\n");
 
 	/* Game starts in waiting state */
 	STATE = STATE_WAIT;
