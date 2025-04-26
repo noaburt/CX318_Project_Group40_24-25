@@ -26,6 +26,7 @@ extern "C" {
 void BOARD_InitBootPins(void);
 
 #define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
+#define PCR_ODE_ode1 0x01u /*!<@brief Open Drain Enable: Enables */
 #define PCR_PE_pe1 0x01u   /*!<@brief Pull Enable: Enables */
 #define PCR_PS_ps1 0x01u   /*!<@brief Pull Select: Enables internal pullup resistor */
 
@@ -43,18 +44,18 @@ void BOARD_InitBootPins(void);
 #define BOARD_INITPINS_IO_START_PIN_MASK (1U << 12U)      /*!<@brief PORT pin mask */
                                                           /* @} */
 
-/*! @name PORT1_13 (coord D1), IO_BREAK
+/*! @name PORT1_21 (coord L5), IO_BREAK
   @{ */
 
 /* Symbols to be used with GPIO driver */
 #define BOARD_INITPINS_IO_BREAK_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
-#define BOARD_INITPINS_IO_BREAK_GPIO_PIN 13U              /*!<@brief GPIO pin number */
-#define BOARD_INITPINS_IO_BREAK_GPIO_PIN_MASK (1U << 13U) /*!<@brief GPIO pin mask */
+#define BOARD_INITPINS_IO_BREAK_GPIO_PIN 21U              /*!<@brief GPIO pin number */
+#define BOARD_INITPINS_IO_BREAK_GPIO_PIN_MASK (1U << 21U) /*!<@brief GPIO pin mask */
 
 /* Symbols to be used with PORT driver */
 #define BOARD_INITPINS_IO_BREAK_PORT PORT1                /*!<@brief PORT peripheral base pointer */
-#define BOARD_INITPINS_IO_BREAK_PIN 13U                   /*!<@brief PORT pin number */
-#define BOARD_INITPINS_IO_BREAK_PIN_MASK (1U << 13U)      /*!<@brief PORT pin mask */
+#define BOARD_INITPINS_IO_BREAK_PIN 21U                   /*!<@brief PORT pin number */
+#define BOARD_INITPINS_IO_BREAK_PIN_MASK (1U << 21U)      /*!<@brief PORT pin mask */
                                                           /* @} */
 
 /*! @name PORT1_22 (coord L4), IO_FINISH

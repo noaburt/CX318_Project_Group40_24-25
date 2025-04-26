@@ -172,14 +172,12 @@ void SCT0_IRQHANDLER(void) {
 		/* Logic while playing game */
 
 		/* Map heart rate from rest -> MAX to 0% -> 99% duty cycles */
-		double hr_factor = prev_hr - rest_hr;
-		hr_factor /= MAX_HR; // ratio of current VALID hr to max heart rate (of range rest -> MAX)
+		double hr_factor = (Average * 99U) / MAX_HR;
 
-		motorDutycycle = (uint8_t) ceil(hr_factor * 100U);
+		motorDutycycle = (uint8_t) ceil(hr_factor);
+		if (motorDutycycle > 99U) { motorDutycycle = 99U; }
+
 		ledDutycycle = motorDutycycle;
-
-		if (motorDutycycle > MAX_MOT_DUTY) { motorDutycycle = MAX_MOT_DUTY; }
-		if (ledDutycycle > 99U) { ledDutycycle = 99U; }
 
 		break;
 
@@ -328,6 +326,8 @@ int main(void)
 	int i;
 	int32_t brightness;
 
+	Heartrate_Array_Index = 0;
+	Average = 0;
 	/* Timer variables */
 	MAIN_ResetGame();
 
@@ -395,10 +395,24 @@ int main(void)
 			);
 
 			if (hr_valid == 1) {
-				if (prev_hr == 0 || abs(heart_rate - prev_hr) < MAX_HR_DELT) {
-					if (heart_rate <= MAX_HR && heart_rate >= MIN_HR) { prev_hr = heart_rate; }
-				}
+				if (heart_rate <= MAX_HR && heart_rate >= MIN_HR) { prev_hr = heart_rate; }
 			}
+
+			Heartrate_Array[Heartrate_Array_Index] = prev_hr;
+			Heartrate_Array_Index = (Heartrate_Array_Index + 1) & 0b1111;
+
+			Average = 0;
+			for(int i = 0; i < 16; i++){
+				Average += Heartrate_Array[i];
+			}
+			Average = Average / 16;
+			Average = Average;
+
+			float e = exp(1);
+			float smoothed = 1;
+			smoothed = smoothed / (1 + pow(e,Average));
+
+			PRINTF("Array Index: %i  ---  Average: %i  ---  Smoothed: %.5f\r\n", Heartrate_Array_Index, (int) ceil(Average), smoothed);
 
 			if (prev_hr < rest_hr) { rest_hr = prev_hr; }
 

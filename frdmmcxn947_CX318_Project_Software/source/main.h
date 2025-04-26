@@ -14,9 +14,8 @@
 /* HR Sensor*/
 #define MAX_BRIGHTNESS 255
 
-#define MAX_HR 200
+#define MAX_HR 500
 #define MIN_HR 40
-#define MAX_HR_DELT 100
 
 /* SCTimer & PWM */
 #define PWM_BASE_DELAY 40000
@@ -24,7 +23,7 @@
 #define SCTIMER_LED_OUT kSCTIMER_Out_4
 #define SCTIMER_MOT_OUT kSCTIMER_Out_0
 
-#define MAX_MOT_DUTY 50
+#define MAX_MOT_DUTY 50U
 
 /* LED */
 #define SET_GRN 0
@@ -52,6 +51,9 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 void PWM_Delay(uint32_t delay);
 void PWM_Update();
 
+uint32_t Heartrate_Array[16] = {0};
+int Heartrate_Array_Index;
+float Average;
 /*******************************************************************************
  * Variables
  ******************************************************************************/
