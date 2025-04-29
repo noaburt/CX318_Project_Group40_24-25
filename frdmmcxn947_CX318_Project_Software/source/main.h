@@ -47,7 +47,10 @@ void MAIN_ShowScore();
 void MAIN_ShowTime();
 void MAIN_ShowWait();
 void MAIN_ShowBreak();
+
 void MAIN_ResetGame();
+void MAIN_PauseIRQs();
+void MAIN_ResumeIRQs();
 
 void MAX_Begin();
 void MAX_ReadFirst(uint32_t led_min, uint32_t led_max, int i);

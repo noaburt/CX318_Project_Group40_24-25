@@ -24,9 +24,7 @@ void MAIN_CheckErr(status_t result, char* occurrence) {
 	PRINTF("PROGRAM FAILED AT: %s with %d\r\n", occurrence, result);
 
 	MAIN_ResetGame();
-	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
-	DisableIRQ(GPIO1_INT_0_IRQN);
-	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+	//MAIN_PauseIRQs();
 
 	OLED_Reset();
 
@@ -36,6 +34,18 @@ void MAIN_CheckErr(status_t result, char* occurrence) {
 	while (1);
 
 	exit;
+}
+
+void MAIN_PauseIRQs() {
+	CTIMER_StopTimer(CTIMER0_PERIPHERAL);
+	DisableIRQ(GPIO1_INT_0_IRQN);
+	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+}
+
+void MAIN_ResumeIRQs() {
+	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
+	EnableIRQ(GPIO1_INT_0_IRQN);
+	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 }
 
 
@@ -140,7 +150,11 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 
 		while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1) {}
 
+		//MAIN_PauseIRQs();
+
 		MAIN_CheckErr(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
+
+		//MAIN_ResumeIRQs();
 
 		if (red_buffer[i] > prev_data) {
 			tmp = red_buffer[i] - prev_data;
@@ -415,14 +429,6 @@ int main(void)
 	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
 
-
-	/* Read first 500 readings */
-	PRINTF("READING FIRST 500\r\n");
-	MAX_ReadFirst(led_min, led_max, i);
-
-	prev_data = red_buffer[i];
-
-
 	PRINTF("INITIALISED\r\n");
 	OLED_Reset();
 
@@ -439,6 +445,7 @@ int main(void)
 
 	/* Game starts in waiting state */
 	MAIN_ResetGame();
+	uint8_t read_first = 1U;
 
 	while (1) {
 
@@ -447,6 +454,15 @@ int main(void)
 		case STATE_PLAY:
 			/* Logic while playing game */
 
+			if (read_first == 1U) {
+				/* Read first 500 readings */
+				read_first = 0U;
+				PRINTF("READING FIRST 500\r\n");
+				MAX_ReadFirst(led_min, led_max, i);
+
+				prev_data = red_buffer[i];
+			}
+
 			/* Calculate hr and Sp02 after first 500 samples (5 seconds) */
 			maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
 
@@ -454,7 +470,9 @@ int main(void)
 
 			led_min = 0x3FFFF;
 			led_max = 0;
+
 			MAX_ReadAll(led_min, led_max, prev_data, i, brightness);
+
 			maxim_heart_rate_and_oxygen_saturation(
 					ir_led_buffer, ir_buffer_len, red_buffer,
 					&spo2, &spo2_valid,

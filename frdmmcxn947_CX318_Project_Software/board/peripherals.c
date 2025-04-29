@@ -289,7 +289,7 @@ void BOARD_InitPeripherals(void)
   /* Initialize components */
   SCT0_init();
   GPIO1_init();
-  CTIMER0_init();
+  //CTIMER0_init();
 }
 
 /***********************************************************************************************************************
