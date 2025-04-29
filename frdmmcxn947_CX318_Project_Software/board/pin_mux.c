@@ -16,7 +16,8 @@ pin_labels:
 - {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: MAX_INT, identifier: MAX_INT}
 - {pin_num: H3, pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0, label: SCT_MOT_OUT}
 - {pin_num: M14, pin_signal: PIO5_9/TAMPER7/ADC1_B17, label: LED_SELECT, identifier: LED_SELECT}
-- {pin_num: K2, pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK, label: SCT_LED_OUT}
+- {pin_num: K2, pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK, label: PWM_LED_OUT,
+  identifier: PWM_MOT_OUT;PWM_LED_OUT}
 - {pin_num: D2, pin_signal: PIO1_12/WUU0_IN12/TRACE_CLK/FC4_P4/FC3_P0/CT2_MAT2/SCT0_OUT4/FLEXIO0_D20/SMARTDMA_PIO8/PLU_OUT2/ENET0_RXER/CAN1_RXD/TSI0_CH21/ADC1_A12,
   label: IO_START, identifier: IO_START}
 - {pin_num: D1, pin_signal: PIO1_13/TRIG_IN3/FC4_P5/FC3_P1/CT2_MAT3/SCT0_OUT5/FLEXIO0_D21/SMARTDMA_PIO9/PLU_OUT3/ENET0_RXDV/CAN1_TXD/TSI0_CH22/ADC1_A13, label: IO_BREAK,
@@ -25,6 +26,10 @@ pin_labels:
 - {pin_num: M4, pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, label: IO_TRACK, identifier: IO_TRACK}
 - {pin_num: L5, pin_signal: PIO1_21/TRIG_OUT2/FC5_P5/FC4_P1/CT3_MAT3/SCT0_OUT9/FLEXIO0_D29/SMARTDMA_PIO17/PLU_OUT7/ENET0_MDIO/SAI1_MCLK/CAN1_RXD/ADC1_A21/CMP2_IN3,
   label: IO_BREAK, identifier: IO_BREAK}
+- {pin_num: K1, pin_signal: PIO2_5/TRIG_OUT3/FC9_P2/SDHC0_CMD/SCT0_OUT3/PWM1_B1/FLEXIO0_D13/SMARTDMA_PIO25/FLEXSPI0_B_DATA1/SINC0_MBIT1/SAI0_TXD1, label: SCT_LED_OUT}
+- {pin_num: B17, pin_signal: PIO3_0/WUU0_IN22/TRIG_IN0/FC7_P3/CT_INP16/PWM0_A0/FLEXIO0_D8/SMARTDMA_PIO0/FLEXSPI0_A_SS0_b, label: PWM_MOT_OUT, identifier: PWM_MOT_OUT}
+- {pin_num: K3, pin_signal: PIO2_4/WUU0_IN17/FC9_P0/SDHC0_CLK/SCT0_OUT2/PWM1_A1/FLEXIO0_D12/SMARTDMA_PIO24/FLEXSPI0_B_DATA0/SINC0_MCLK1/SAI0_RXD1, label: PWM_MOT_OUT,
+  identifier: PWM_MOT_OUT}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -354,9 +359,10 @@ void MAX_InitIPins(void)
 PWM_InitPins:
 - options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
 - pin_list:
-  - {pin_num: K2, peripheral: SCT0, signal: 'OUT, 4', pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK}
-  - {pin_num: H3, peripheral: SCT0, signal: 'OUT, 0', pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0}
   - {pin_num: M14, peripheral: GPIO5, signal: 'GPIO, 9', pin_signal: PIO5_9/TAMPER7/ADC1_B17, direction: OUTPUT}
+  - {pin_num: K2, peripheral: PWM1, signal: 'A, 0', pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK,
+    identifier: PWM_LED_OUT}
+  - {pin_num: K3, peripheral: PWM1, signal: 'A, 1', pin_signal: PIO2_4/WUU0_IN17/FC9_P0/SDHC0_CLK/SCT0_OUT2/PWM1_A1/FLEXIO0_D12/SMARTDMA_PIO24/FLEXSPI0_B_DATA0/SINC0_MCLK1/SAI0_RXD1}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -379,18 +385,18 @@ void PWM_InitPins(void)
     /* Initialize GPIO functionality on pin PIO5_9 (pin M14)  */
     GPIO_PinInit(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_PIN, &LED_SELECT_config);
 
-    /* PORT2_2 (pin H3) is configured as SCT0_OUT0 */
-    PORT_SetPinMux(PORT2, 2U, kPORT_MuxAlt4);
+    /* PORT2_4 (pin K3) is configured as PWM1_A1 */
+    PORT_SetPinMux(PWM_INITPINS_PWM_MOT_OUT_PORT, PWM_INITPINS_PWM_MOT_OUT_PIN, kPORT_MuxAlt5);
 
-    PORT2->PCR[2] = ((PORT2->PCR[2] &
+    PORT2->PCR[4] = ((PORT2->PCR[4] &
                       /* Mask bits to zero which are setting */
                       (~(PORT_PCR_IBE_MASK)))
 
                      /* Input Buffer Enable: Enables. */
                      | PORT_PCR_IBE(PCR_IBE_ibe1));
 
-    /* PORT2_6 (pin K2) is configured as SCT0_OUT4 */
-    PORT_SetPinMux(PORT2, 6U, kPORT_MuxAlt4);
+    /* PORT2_6 (pin K2) is configured as PWM1_A0 */
+    PORT_SetPinMux(PWM_INITPINS_PWM_LED_OUT_PORT, PWM_INITPINS_PWM_LED_OUT_PIN, kPORT_MuxAlt5);
 
     PORT2->PCR[6] = ((PORT2->PCR[6] &
                       /* Mask bits to zero which are setting */

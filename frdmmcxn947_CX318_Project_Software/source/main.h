@@ -7,6 +7,7 @@
 #include "board.h"
 #include "fsl_clock.h"
 #include "shield_oled.h"
+#include "fsl_pwm.h"
 
 /*******************************************************************************
  * Definitions
@@ -36,6 +37,12 @@
 #define STATE_BREAK 3
 #define STATE_FINISH 4
 
+/* From PWM example */
+#define BOARD_PWM_BASEADDR        PWM1
+#define PWM_SRC_CLK_FREQ          CLOCK_GetFreq(kCLOCK_BusClk)
+#define DEMO_PWM_FAULT_LEVEL      true
+#define APP_DEFAULT_PWM_FREQUENCY (10000UL)
+
 
 /*******************************************************************************
  * Prototypes
@@ -49,15 +56,15 @@ void MAIN_ShowWait();
 void MAIN_ShowBreak();
 
 void MAIN_ResetGame();
-void MAIN_PauseIRQs();
-void MAIN_ResumeIRQs();
+
+void MAIN_PwmInterrupt();
 
 void MAX_Begin();
 void MAX_ReadFirst(uint32_t led_min, uint32_t led_max, int i);
 void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, uint32_t brightness);
 
 void PWM_Delay(uint32_t delay);
-void PERIPHERALS_Update();
+void PWM_Update();
 
 uint32_t Heartrate_Array[16] = {0};
 int Heartrate_Array_Index;
@@ -83,12 +90,9 @@ int8_t hr_valid;				// Heart rate calculation validity
 uint8_t dummy;					// General 'dummy' variable
 
 uint8_t brightnessUp;
-uint8_t sctimerFlag;
-uint8_t ctimerFlag;
 uint8_t gpioFlag;
 
 uint8_t ledDutycycle;
-uint8_t motorDutycycle;
 uint32_t ledDelay;
 uint32_t motorDelay;
 

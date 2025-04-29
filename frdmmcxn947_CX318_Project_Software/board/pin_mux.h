@@ -135,6 +135,24 @@ void MAX_InitIPins(void);
 #define PWM_INITPINS_LED_SELECT_PIN_MASK (1U << 9U)      /*!<@brief PORT pin mask */
                                                          /* @} */
 
+/*! @name PORT2_6 (coord K2), PWM_LED_OUT
+  @{ */
+
+/* Symbols to be used with PORT driver */
+#define PWM_INITPINS_PWM_LED_OUT_PORT PORT2               /*!<@brief PORT peripheral base pointer */
+#define PWM_INITPINS_PWM_LED_OUT_PIN 6U                   /*!<@brief PORT pin number */
+#define PWM_INITPINS_PWM_LED_OUT_PIN_MASK (1U << 6U)      /*!<@brief PORT pin mask */
+                                                          /* @} */
+
+/*! @name PORT2_4 (coord K3), PWM_MOT_OUT
+  @{ */
+
+/* Symbols to be used with PORT driver */
+#define PWM_INITPINS_PWM_MOT_OUT_PORT PORT2               /*!<@brief PORT peripheral base pointer */
+#define PWM_INITPINS_PWM_MOT_OUT_PIN 4U                   /*!<@brief PORT pin number */
+#define PWM_INITPINS_PWM_MOT_OUT_PIN_MASK (1U << 4U)      /*!<@brief PORT pin mask */
+                                                          /* @} */
+
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
