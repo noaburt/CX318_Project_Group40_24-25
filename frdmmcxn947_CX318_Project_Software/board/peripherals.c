@@ -71,7 +71,6 @@ instance:
     - interrupt_table:
       - 0: []
       - 1: []
-      - 2: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -215,73 +214,6 @@ static void GPIO1_init(void) {
 }
 
 /***********************************************************************************************************************
- * CTIMER0 initialization code
- **********************************************************************************************************************/
-/* clang-format off */
-/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
-instance:
-- name: 'CTIMER0'
-- type: 'ctimer'
-- mode: 'Capture_Match'
-- custom_name_enabled: 'false'
-- type_id: 'ctimer_2.2.2'
-- functional_group: 'BOARD_InitPeripherals'
-- peripheral: 'CTIMER0'
-- config_sets:
-  - fsl_ctimer:
-    - ctimerConfig:
-      - mode: 'kCTIMER_TimerMode'
-      - clockSource: 'FunctionClock'
-      - clockSourceFreq: 'ClocksTool_DefaultInit'
-      - timerPrescaler: '3000'
-    - EnableTimerInInit: 'true'
-    - matchChannels:
-      - 0:
-        - matchChannelPrefixId: 'Match_0'
-        - matchChannel: 'kCTIMER_Match_0'
-        - matchValueStr: '50000'
-        - enableCounterReset: 'true'
-        - enableCounterStop: 'false'
-        - outControl: 'kCTIMER_Output_NoAction'
-        - outPinInitValue: 'low'
-        - enableInterrupt: 'true'
-    - captureChannels: []
-    - interruptCallbackConfig:
-      - interrupt:
-        - IRQn: 'CTIMER0_IRQn'
-        - enable_priority: 'false'
-        - priority: '0'
-      - callback: 'kCTIMER_SingleCallback'
-      - singleCallback: 'ctimer_match0_callback'
- * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
-/* clang-format on */
-const ctimer_config_t CTIMER0_config = {
-  .mode = kCTIMER_TimerMode,
-  .input = kCTIMER_Capture_0,
-  .prescale = 2999
-};
-const ctimer_match_config_t CTIMER0_Match_0_config = {
-  .matchValue = 49999,
-  .enableCounterReset = true,
-  .enableCounterStop = false,
-  .outControl = kCTIMER_Output_NoAction,
-  .outPinInitState = false,
-  .enableInterrupt = true
-};
-/* Single callback functions definition */
-ctimer_callback_t CTIMER0_callback[] = {ctimer_match0_callback};
-
-static void CTIMER0_init(void) {
-  /* CTIMER0 peripheral initialization */
-  CTIMER_Init(CTIMER0_PERIPHERAL, &CTIMER0_config);
-  /* Match channel 0 of CTIMER0 peripheral initialization */
-  CTIMER_SetupMatch(CTIMER0_PERIPHERAL, CTIMER0_MATCH_0_CHANNEL, &CTIMER0_Match_0_config);
-  CTIMER_RegisterCallBack(CTIMER0_PERIPHERAL, CTIMER0_callback, kCTIMER_SingleCallback);
-  /* Start the timer */
-  CTIMER_StartTimer(CTIMER0_PERIPHERAL);
-}
-
-/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
@@ -289,7 +221,6 @@ void BOARD_InitPeripherals(void)
   /* Initialize components */
   SCT0_init();
   GPIO1_init();
-  //CTIMER0_init();
 }
 
 /***********************************************************************************************************************

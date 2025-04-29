@@ -36,19 +36,6 @@ void MAIN_CheckErr(status_t result, char* occurrence) {
 	exit;
 }
 
-void MAIN_PauseIRQs() {
-	CTIMER_StopTimer(CTIMER0_PERIPHERAL);
-	DisableIRQ(GPIO1_INT_0_IRQN);
-	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-}
-
-void MAIN_ResumeIRQs() {
-	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
-	EnableIRQ(GPIO1_INT_0_IRQN);
-	SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
-}
-
-
 /* Calculate player score */
 int MAIN_CalculateScore() {
 
@@ -75,7 +62,7 @@ void MAIN_ShowTime() {
 void MAIN_ShowWait() {
 	OLED_Reset();
 
-	sprintf(buffer, "Ready to play!\nLift Hook off Star\nto begin.");
+	sprintf(buffer, "Ready to play!\nLift Hook off Start\nto begin.");
 	OLED_Print(buffer);
 }
 
@@ -92,9 +79,15 @@ void MAIN_ResetGame() {
 	STATE = STATE_WAIT;
 
 	runTimer = 0U;
+	timerFlag = 0U;
+
 	playerBuzzes = 0U;
 	playerTime = 60U;
 	displayScore = 0U;
+
+	Heartrate_Array_Index = 0;
+	Average = 0;
+	Heartrate_Array[16] = (uint32_t) {0};
 
 	motorDelay = PWM_BASE_DELAY;
 	ledDelay = PWM_BASE_DELAY;
@@ -207,15 +200,17 @@ void PWM_Update() {
 		SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
 		sctimerFlag = 0U;
-	}
-}
 
-/* CTimer interrupt handler */
-void ctimer_match0_callback(uint32_t flags) {
-	if (runTimer == 1U) {
-		playerTime--;
+		if (runTimer == 1U) {
+			if (timerFlag == 1U) {
+				timerFlag = 0U;
 
-		MAIN_ShowTime();
+				playerTime--;
+				MAIN_ShowTime();
+			} else {
+				timerFlag = 1U;
+			}
+		}
 	}
 }
 
@@ -316,6 +311,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 			runTimer = 0U;
 			displayScore = MAIN_CalculateScore();
+			MAIN_ShowScore();
 			break;
 		}
 
@@ -352,9 +348,13 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		break;
 
 	case STATE_FINISH:
-		MAIN_ShowScore();
+		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
+			NEW_STATE = STATE_WAIT;
+			PRINTF("WAIT from FINISH\r\n");
 
-		PRINTF("WAIT from FINISH\r\n");
+			MAIN_ShowWait();
+		}
+
 		break;
 
 	}
@@ -402,9 +402,6 @@ int main(void)
 	int i;
 	int32_t brightness;
 
-	Heartrate_Array_Index = 0;
-	Average = 0;
-
 	/* PWM Variables */
 	brightnessUp = 1U;
 	sctimerFlag = 0U;
@@ -430,6 +427,7 @@ int main(void)
 	ir_buffer_len = 500;
 
 	PRINTF("INITIALISED\r\n");
+    OLED_Init();
 	OLED_Reset();
 
 	sprintf(buffer, "Waiting...\nPlace Hook on Start");
@@ -438,14 +436,22 @@ int main(void)
 	/* Wait until hook is placed on start */
 	while (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {}
 
-	PRINTF("BEGINNING\r\n");
-	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
+	uint8_t read_first = 1U;
 
+	if (read_first == 1U) {
+		/* Read first 500 readings */
+		read_first = 0U;
+		PRINTF("READING FIRST 500\r\n");
+		MAX_ReadFirst(led_min, led_max, i);
+
+		prev_data = red_buffer[i];
+	}
+
+	PRINTF("BEGINNING\r\n");
 	MAIN_ShowWait();
 
 	/* Game starts in waiting state */
 	MAIN_ResetGame();
-	uint8_t read_first = 1U;
 
 	while (1) {
 
@@ -453,15 +459,6 @@ int main(void)
 
 		case STATE_PLAY:
 			/* Logic while playing game */
-
-			if (read_first == 1U) {
-				/* Read first 500 readings */
-				read_first = 0U;
-				PRINTF("READING FIRST 500\r\n");
-				MAX_ReadFirst(led_min, led_max, i);
-
-				prev_data = red_buffer[i];
-			}
 
 			/* Calculate hr and Sp02 after first 500 samples (5 seconds) */
 			maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
@@ -516,8 +513,7 @@ int main(void)
 
 		case STATE_FINISH:
 			/* Display score, reset */
-			SDK_DelayAtLeastUs(3000000, CLOCK_GetFreq(kCLOCK_CoreSysClk)); // wait 3 sec
-			MAIN_ResetGame();
+
 			break;
 
 		}
