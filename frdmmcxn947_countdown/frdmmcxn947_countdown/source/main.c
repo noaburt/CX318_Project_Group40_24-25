@@ -30,11 +30,13 @@ int main(void)
 
     SDK_DelayAtLeastUs(3000000, CLOCK_GetFreq(kCLOCK_CoreSysClk)); // wait 3 sec
 
+    char buffer[32];
+
     // Countdown
     for (int seconds = 60; seconds >= 0; seconds--)
     {
     	OLED_Reset(); // clear screen and reset cursor
-        char buffer[32];
+
         sprintf(buffer, "Time left:\n%02d seconds", seconds);
         OLED_Print(buffer);
 

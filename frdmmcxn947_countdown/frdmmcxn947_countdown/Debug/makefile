@@ -30,7 +30,7 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := frdmmcxn947_hello_world_demo
+BUILD_ARTIFACT_NAME := frdmmcxn947_countdown
 BUILD_ARTIFACT_EXTENSION := axf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
@@ -42,24 +42,24 @@ all:
 	+@$(MAKE) --no-print-directory main-build && $(MAKE) --no-print-directory post-build
 
 # Main-build Target
-main-build: frdmmcxn947_hello_world_demo.axf
+main-build: frdmmcxn947_countdown.axf
 
 # Tool invocations
-frdmmcxn947_hello_world_demo.axf: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
+frdmmcxn947_countdown.axf: $(OBJS) $(USER_OBJS) makefile $(OPTIONAL_TOOL_DEPS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -Xlinker -no-warn-rwx-segments -Xlinker -Map="frdmmcxn947_hello_world_demo.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -T frdmmcxn947_hello_world_demo_Debug.ld -o "frdmmcxn947_hello_world_demo.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -Xlinker -no-warn-rwx-segments -Xlinker -Map="frdmmcxn947_countdown.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -Xlinker --sort-section=alignment -Xlinker --cref -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -T frdmmcxn947_countdown_Debug.ld -o "frdmmcxn947_countdown.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) frdmmcxn947_hello_world_demo.axf
+	-$(RM) frdmmcxn947_countdown.axf
 	-@echo ' '
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "frdmmcxn947_hello_world_demo.axf"; # arm-none-eabi-objcopy -v -O binary "frdmmcxn947_hello_world_demo.axf" "frdmmcxn947_hello_world_demo.bin" ; # checksum -p MCXN947 -d "frdmmcxn947_hello_world_demo.bin";
+	-arm-none-eabi-size "frdmmcxn947_countdown.axf"; # arm-none-eabi-objcopy -v -O binary "frdmmcxn947_countdown.axf" "frdmmcxn947_countdown.bin" ; # checksum -p MCXN947 -d "frdmmcxn947_countdown.bin";
 	-@echo ' '
 
 .PHONY: all clean dependents main-build post-build

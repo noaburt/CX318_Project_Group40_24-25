@@ -11,6 +11,7 @@
 #include <algorithm.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 /*******************************************************************************
  * Code
@@ -22,27 +23,67 @@ void MAIN_CheckErr(status_t result, char* occurrence) {
 	if (result == kStatus_Success) { return; }
 	PRINTF("PROGRAM FAILED AT: %s with %d\r\n", occurrence, result);
 
+	MAIN_ResetGame();
+	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
+	DisableIRQ(GPIO1_INT_0_IRQN);
+	SCTIMER_DisableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
+
+	OLED_Reset();
+
+	sprintf(buffer, "PROGRAM FAILED AT:\n%s (%d)", occurrence, result);
+	OLED_Print(buffer);
+
 	while (1);
 
 	exit;
 }
 
-/* Calculate player score --------------------------------------------------------------------------------------- TODO */
+
+/* Calculate player score */
 int MAIN_CalculateScore() {
 
-	return 5U;
+	return 100U - playerBuzzes;
 }
 
 /* Show score to user */
 void MAIN_ShowScore() {
-	PRINTF("FINAL SCORE: %d\r\n", displayScore);
+	OLED_Reset();
+
+	sprintf(buffer, "Final Score: %02d!\nWell Done!", displayScore);
+	OLED_Print(buffer);
+}
+
+/* Show time to user */
+void MAIN_ShowTime() {
+	OLED_Reset();
+
+	sprintf(buffer, "Time left:\n%02d seconds", playerTime);
+	OLED_Print(buffer);
+}
+
+/* Show wait message to user */
+void MAIN_ShowWait() {
+	OLED_Reset();
+
+	sprintf(buffer, "Ready to play!\nLift Hook off Star\nto begin.");
+	OLED_Print(buffer);
+}
+
+/* Show break message to user */
+void MAIN_ShowBreak() {
+	OLED_Reset();
+
+	sprintf(buffer, "Relax...");
+	OLED_Print(buffer);
 }
 
 /* Reset score keeping values */
 void MAIN_ResetGame() {
+	STATE = STATE_WAIT;
+
 	runTimer = 0U;
 	playerBuzzes = 0U;
-	playerTime = 0U;
+	playerTime = 60U;
 	displayScore = 0U;
 
 	motorDelay = PWM_BASE_DELAY;
@@ -152,8 +193,15 @@ void PWM_Update() {
 		SCTIMER_EnableInterrupts(SCT0, (1 << SCT0_pwmEvent[0]));
 
 		sctimerFlag = 0U;
+	}
+}
 
-		//PRINTF("UPDATE\r\n");
+/* CTimer interrupt handler */
+void ctimer_match0_callback(uint32_t flags) {
+	if (runTimer == 1U) {
+		playerTime--;
+
+		MAIN_ShowTime();
 	}
 }
 
@@ -227,6 +275,8 @@ void GPIO1_INT_0_IRQHANDLER(void) {
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
   uint8_t NEW_STATE = STATE;
 
+  PRINTF("GPIO\r\n");
+
   /* Interrupt code here*/
   switch (STATE) {
 
@@ -240,19 +290,27 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 0) {
 			NEW_STATE = STATE_BREAK;
 			PRINTF("BREAK from PLAY\r\n");
+
+			runTimer = 0U;
+			MAIN_ShowBreak();
 			break;
 		}
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_GPIO_PIN) == 0) {
 			NEW_STATE = STATE_FINISH;
 			PRINTF("FINISH from PLAY\r\n");
+
+			runTimer = 0U;
 			displayScore = MAIN_CalculateScore();
 			break;
 		}
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
-			NEW_STATE = STATE_FINISH;
+			NEW_STATE = STATE_WAIT;
 			PRINTF("RESTART from PLAY\r\n");
+
+			MAIN_ResetGame();
+			MAIN_ShowWait();
 		}
 
 		break;
@@ -262,6 +320,8 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
 			NEW_STATE = STATE_PLAY;
 			PRINTF("PLAY from BREAK\r\n");
+
+			runTimer = 1U;
 		}
 
 		break;
@@ -271,13 +331,15 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
 			NEW_STATE = STATE_PLAY;
 			PRINTF("PLAY from WAIT\r\n");
+
+			runTimer = 1U;
 		}
 
 		break;
 
 	case STATE_FINISH:
+		MAIN_ShowScore();
 
-		NEW_STATE = STATE_WAIT;
 		PRINTF("WAIT from FINISH\r\n");
 		break;
 
@@ -328,8 +390,6 @@ int main(void)
 
 	Heartrate_Array_Index = 0;
 	Average = 0;
-	/* Timer variables */
-	MAIN_ResetGame();
 
 	/* PWM Variables */
 	brightnessUp = 1U;
@@ -337,7 +397,6 @@ int main(void)
 
 	/* Heart Rate to Led PWM variables */
 	ledDutycycle = 10U;
-	rest_hr = MIN_HR;
 
 
 	/* Begin game */
@@ -355,16 +414,31 @@ int main(void)
 
 	/* Buffer length stores 5 seconds of samples at 100s/s */
 	ir_buffer_len = 500;
+
+
+	/* Read first 500 readings */
+	PRINTF("READING FIRST 500\r\n");
+	MAX_ReadFirst(led_min, led_max, i);
+
+	prev_data = red_buffer[i];
+
+
 	PRINTF("INITIALISED\r\n");
+	OLED_Reset();
+
+	sprintf(buffer, "Waiting...\nPlace Hook on Start");
+	OLED_Print(buffer);
 
 	/* Wait until hook is placed on start */
 	while (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {}
+
 	PRINTF("BEGINNING\r\n");
+	CTIMER_StartTimer(CTIMER0_PERIPHERAL);
+
+	MAIN_ShowWait();
 
 	/* Game starts in waiting state */
-	STATE = STATE_WAIT;
-
-	uint8_t FIRST_500 = 0U;
+	MAIN_ResetGame();
 
 	while (1) {
 
@@ -372,18 +446,11 @@ int main(void)
 
 		case STATE_PLAY:
 			/* Logic while playing game */
+
+			/* Calculate hr and Sp02 after first 500 samples (5 seconds) */
+			maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
+
 			GPIO_PinWrite(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_GPIO_PIN, SET_RED);
-
-			if (FIRST_500 == 0U) {
-				PRINTF("READING FIRST 500\r\n");
-				MAX_ReadFirst(led_min, led_max, i);
-
-				FIRST_500 = 1U;
-				prev_data = red_buffer[i];
-
-				/* Calculate hr and Sp02 after first 500 samples (5 seconds) */
-				maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
-			}
 
 			led_min = 0x3FFFF;
 			led_max = 0;
@@ -412,26 +479,26 @@ int main(void)
 			float smoothed = 1;
 			smoothed = smoothed / (1 + pow(e,Average));
 
-			PRINTF("Array Index: %i  ---  Average: %i  ---  Smoothed: %.5f\r\n", Heartrate_Array_Index, (int) ceil(Average), smoothed);
+			PRINTF("Array Index: %i  ---  Average: %i\r\n", Heartrate_Array_Index, (int) ceil(Average));
 
 			if (prev_hr < rest_hr) { rest_hr = prev_hr; }
 
 			PRINTF("HR Valid = %i, HR = %i, Stored HR = %i, Cycle = %d\r\n", hr_valid, heart_rate, prev_hr, ledDutycycle);
+
 			break;
 
 		case STATE_BREAK:
 			/* Pause timer and do same as WAIT*/
-			runTimer = 0U;
 
 		case STATE_WAIT:
 			/* Set to flash green LEDs */
-			//PRINTF("WAIT\r\n");
 			GPIO_PinWrite(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_GPIO_PIN, SET_GRN);
+
 			break;
 
 		case STATE_FINISH:
 			/* Display score, reset */
-			MAIN_ShowScore();
+			SDK_DelayAtLeastUs(3000000, CLOCK_GetFreq(kCLOCK_CoreSysClk)); // wait 3 sec
 			MAIN_ResetGame();
 			break;
 

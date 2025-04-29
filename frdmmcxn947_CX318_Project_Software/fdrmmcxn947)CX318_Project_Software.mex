@@ -456,6 +456,7 @@
                <clock_outputs>
                   <clock_output id="CLK_144M_clock.outFreq" value="144 MHz" locked="false" accuracy=""/>
                   <clock_output id="CLK_48M_clock.outFreq" value="48 MHz" locked="false" accuracy=""/>
+                  <clock_output id="CTIMER0_clock.outFreq" value="150 MHz" locked="false" accuracy=""/>
                   <clock_output id="FLEXCOMM2_clock.outFreq" value="12 MHz" locked="true" accuracy="0.001"/>
                   <clock_output id="FRO_12M_clock.outFreq" value="12 MHz" locked="false" accuracy=""/>
                   <clock_output id="FRO_HF_clock.outFreq" value="48 MHz" locked="false" accuracy=""/>
@@ -470,11 +471,13 @@
                   <setting id="PLL0_Mode" value="Normal" locked="false"/>
                   <setting id="RunPowerMode" value="OD" locked="false"/>
                   <setting id="SCGMode" value="PLL0" locked="false"/>
+                  <setting id="CTIMER0CLKDIV_HALT" value="Enable" locked="false"/>
                   <setting id="FLEXCOMM2CLKDIV_HALT" value="Enable" locked="false"/>
                   <setting id="SCG.PLL0M_MULT.scale" value="50" locked="true"/>
                   <setting id="SCG.PLL0SRCSEL.sel" value="SCG.FIRC_48M" locked="false"/>
                   <setting id="SCG.PLL0_NDIV.scale" value="8" locked="true"/>
                   <setting id="SCG.SCSSEL.sel" value="SCG.PLL0_CLK" locked="false"/>
+                  <setting id="SYSCON.CTIMERCLKSEL0.sel" value="SCG.PLL0_CLK" locked="false"/>
                   <setting id="SYSCON.FCCLKSEL2.sel" value="SCG.FRO_12M" locked="false"/>
                   <setting id="SYSCON.FLEXSPICLKSEL.sel" value="NO_CLOCK" locked="false"/>
                   <setting id="SYSCON.FREQMEREFCLKSEL.sel" value="SYSCON.evtg_out0a" locked="false"/>
@@ -583,6 +586,16 @@
                   <data type="Version">2.7.0</data>
                </feature>
             </dependency>
+            <dependency resourceType="SWComponent" resourceId="platform.drivers.ctimer" description="CTimer Driver is not found in the toolchain/IDE project. The project will not compile!" problem_level="2" source="Peripherals">
+               <feature name="enabled" evaluation="equal">
+                  <data type="Boolean">true</data>
+               </feature>
+            </dependency>
+            <dependency resourceType="SWComponent" resourceId="platform.drivers.ctimer" description="An unsupported version of the CTimer Driver in the toolchain/IDE project. Required: ${required_value}, actual: ${actual_value}. The project might not compile correctly." problem_level="1" source="Peripherals">
+               <feature name="version" evaluation="greaterOrEqual">
+                  <data type="Version" maxValue="2.3.9">2.2.2</data>
+               </feature>
+            </dependency>
             <dependency resourceType="Tool" resourceId="Clocks" description="The Clocks tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
                <feature name="enabled" evaluation="equal">
                   <data>true</data>
@@ -616,6 +629,11 @@
                         <data type="Boolean">true</data>
                      </feature>
                   </dependency>
+                  <dependency resourceType="ClockOutput" resourceId="CTIMER0_clock" description="CTIMER0_clock is inactive." problem_level="2" source="Peripherals:BOARD_InitPeripherals">
+                     <feature name="frequency" evaluation="greaterThan">
+                        <data type="Frequency" unit="Hz">0</data>
+                     </feature>
+                  </dependency>
                </dependencies>
                <instances>
                   <instance name="NVIC" uuid="2923cb66-461a-4675-a071-d75ca197f968" type="nvic" type_id="nvic" mode="general" peripheral="NVIC" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
@@ -623,6 +641,7 @@
                         <array name="interrupt_table">
                            <struct name="0"/>
                            <struct name="1"/>
+                           <struct name="2"/>
                         </array>
                         <array name="interrupts"/>
                      </config_set>
@@ -714,6 +733,39 @@
                            <setting name="enable_priority" value="false"/>
                            <setting name="priority" value="2"/>
                            <setting name="enable_custom_name" value="false"/>
+                        </struct>
+                     </config_set>
+                  </instance>
+                  <instance name="CTIMER0" uuid="ed578a05-3ec8-46c9-a643-f4b21f29396d" type="ctimer" type_id="ctimer_2.2.2" mode="Capture_Match" peripheral="CTIMER0" enabled="true" comment="" custom_name_enabled="false" editing_lock="false">
+                     <config_set name="fsl_ctimer">
+                        <struct name="ctimerConfig">
+                           <setting name="mode" value="kCTIMER_TimerMode"/>
+                           <setting name="clockSource" value="FunctionClock"/>
+                           <setting name="clockSourceFreq" value="ClocksTool_DefaultInit"/>
+                           <setting name="timerPrescaler" value="3000"/>
+                        </struct>
+                        <setting name="EnableTimerInInit" value="true"/>
+                        <array name="matchChannels">
+                           <struct name="0">
+                              <setting name="matchChannelPrefixId" value="Match_0"/>
+                              <setting name="matchChannel" value="kCTIMER_Match_0"/>
+                              <setting name="matchValueStr" value="50000"/>
+                              <setting name="enableCounterReset" value="true"/>
+                              <setting name="enableCounterStop" value="false"/>
+                              <setting name="outControl" value="kCTIMER_Output_NoAction"/>
+                              <setting name="outPinInitValue" value="low"/>
+                              <setting name="enableInterrupt" value="true"/>
+                           </struct>
+                        </array>
+                        <array name="captureChannels"/>
+                        <struct name="interruptCallbackConfig">
+                           <struct name="interrupt">
+                              <setting name="IRQn" value="CTIMER0_IRQn"/>
+                              <setting name="enable_priority" value="false"/>
+                              <setting name="priority" value="0"/>
+                           </struct>
+                           <setting name="callback" value="kCTIMER_SingleCallback"/>
+                           <setting name="singleCallback" value="ctimer_match0_callback"/>
                         </struct>
                      </config_set>
                   </instance>
