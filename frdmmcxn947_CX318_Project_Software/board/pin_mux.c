@@ -30,6 +30,8 @@ pin_labels:
 - {pin_num: B17, pin_signal: PIO3_0/WUU0_IN22/TRIG_IN0/FC7_P3/CT_INP16/PWM0_A0/FLEXIO0_D8/SMARTDMA_PIO0/FLEXSPI0_A_SS0_b, label: PWM_MOT_OUT, identifier: PWM_MOT_OUT}
 - {pin_num: K3, pin_signal: PIO2_4/WUU0_IN17/FC9_P0/SDHC0_CLK/SCT0_OUT2/PWM1_A1/FLEXIO0_D12/SMARTDMA_PIO24/FLEXSPI0_B_DATA0/SINC0_MCLK1/SAI0_RXD1, label: PWM_MOT_OUT,
   identifier: PWM_MOT_OUT}
+- {pin_num: A2, pin_signal: PIO1_7/WUU0_IN9/TRIG_OUT2/FC5_P3/CT_INP7/SCT0_IN1/FLEXIO0_D15/SMARTDMA_PIO3/PLU_CLK/ENET0_TXD1/SAI1_RX_FS/CAN1_RXD/TSI0_CH7/ADC0_A23,
+  label: IO_BREAK, identifier: IO_BREAK}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -67,7 +69,7 @@ BOARD_InitPins:
     pull_select: down, pull_enable: disable, input_buffer: enable, invert_input: normal}
   - {pin_num: D2, peripheral: GPIO1, signal: 'GPIO, 12', pin_signal: PIO1_12/WUU0_IN12/TRACE_CLK/FC4_P4/FC3_P0/CT2_MAT2/SCT0_OUT4/FLEXIO0_D20/SMARTDMA_PIO8/PLU_OUT2/ENET0_RXER/CAN1_RXD/TSI0_CH21/ADC1_A12,
     direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge, open_drain: enable, pull_select: up, pull_enable: enable}
-  - {pin_num: L5, peripheral: GPIO1, signal: 'GPIO, 21', pin_signal: PIO1_21/TRIG_OUT2/FC5_P5/FC4_P1/CT3_MAT3/SCT0_OUT9/FLEXIO0_D29/SMARTDMA_PIO17/PLU_OUT7/ENET0_MDIO/SAI1_MCLK/CAN1_RXD/ADC1_A21/CMP2_IN3,
+  - {pin_num: A2, peripheral: GPIO1, signal: 'GPIO, 7', pin_signal: PIO1_7/WUU0_IN9/TRIG_OUT2/FC5_P3/CT_INP7/SCT0_IN1/FLEXIO0_D15/SMARTDMA_PIO3/PLU_CLK/ENET0_TXD1/SAI1_RX_FS/CAN1_RXD/TSI0_CH7/ADC0_A23,
     direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge, open_drain: enable, pull_select: up, pull_enable: enable}
   - {pin_num: L4, peripheral: GPIO1, signal: 'GPIO, 22', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, direction: INPUT,
     gpio_per_interrupt: kGPIO_InterruptFallingEdge, open_drain: enable, pull_select: up, pull_enable: enable}
@@ -92,19 +94,19 @@ void BOARD_InitPins(void)
     /* Enables the clock for PORT1: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port1);
 
+    gpio_pin_config_t IO_BREAK_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO1_7 (pin A2)  */
+    GPIO_PinInit(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, &IO_BREAK_config);
+
     gpio_pin_config_t IO_START_config = {
         .pinDirection = kGPIO_DigitalInput,
         .outputLogic = 0U
     };
     /* Initialize GPIO functionality on pin PIO1_12 (pin D2)  */
     GPIO_PinInit(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_PIN, &IO_START_config);
-
-    gpio_pin_config_t IO_BREAK_config = {
-        .pinDirection = kGPIO_DigitalInput,
-        .outputLogic = 0U
-    };
-    /* Initialize GPIO functionality on pin PIO1_21 (pin L5)  */
-    GPIO_PinInit(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, &IO_BREAK_config);
 
     gpio_pin_config_t IO_FINISH_config = {
         .pinDirection = kGPIO_DigitalInput,
@@ -123,14 +125,14 @@ void BOARD_InitPins(void)
     /* Interrupt configuration on GPIO1_12 (pin D2): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_PIN, kGPIO_InterruptEitherEdge);
 
-    /* Interrupt configuration on GPIO1_21 (pin L5): Interrupt on either edge */
-    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, kGPIO_InterruptEitherEdge);
-
     /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt on falling edge */
     GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_PIN, kGPIO_InterruptFallingEdge);
 
     /* Interrupt configuration on GPIO1_23 (pin M4): Interrupt on falling edge */
     GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_TRACK_GPIO, BOARD_INITPINS_IO_TRACK_PIN, kGPIO_InterruptFallingEdge);
+
+    /* Interrupt configuration on GPIO1_7 (pin A2): Interrupt on either edge */
+    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, kGPIO_InterruptEitherEdge);
 
     const port_pin_config_t port0_2_pinB16_config = {/* Internal pull-up/down resistor is disabled */
                                                      .pullSelect = kPORT_PullDisable,
@@ -159,25 +161,6 @@ void BOARD_InitPins(void)
     PORT_SetPinMux(BOARD_INITPINS_IO_START_PORT, BOARD_INITPINS_IO_START_PIN, kPORT_MuxAlt0);
 
     PORT1->PCR[12] = ((PORT1->PCR[12] &
-                       /* Mask bits to zero which are setting */
-                       (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_ODE_MASK | PORT_PCR_IBE_MASK)))
-
-                      /* Pull Select: Enables internal pullup resistor. */
-                      | PORT_PCR_PS(PCR_PS_ps1)
-
-                      /* Pull Enable: Enables. */
-                      | PORT_PCR_PE(PCR_PE_pe1)
-
-                      /* Open Drain Enable: Enables. */
-                      | PORT_PCR_ODE(PCR_ODE_ode1)
-
-                      /* Input Buffer Enable: Enables. */
-                      | PORT_PCR_IBE(PCR_IBE_ibe1));
-
-    /* PORT1_21 (pin L5) is configured as PIO1_21 */
-    PORT_SetPinMux(BOARD_INITPINS_IO_BREAK_PORT, BOARD_INITPINS_IO_BREAK_PIN, kPORT_MuxAlt0);
-
-    PORT1->PCR[21] = ((PORT1->PCR[21] &
                        /* Mask bits to zero which are setting */
                        (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_ODE_MASK | PORT_PCR_IBE_MASK)))
 
@@ -230,6 +213,25 @@ void BOARD_InitPins(void)
 
                       /* Input Buffer Enable: Enables. */
                       | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT1_7 (pin A2) is configured as PIO1_7 */
+    PORT_SetPinMux(BOARD_INITPINS_IO_BREAK_PORT, BOARD_INITPINS_IO_BREAK_PIN, kPORT_MuxAlt0);
+
+    PORT1->PCR[7] = ((PORT1->PCR[7] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_ODE_MASK | PORT_PCR_IBE_MASK)))
+
+                     /* Pull Select: Enables internal pullup resistor. */
+                     | PORT_PCR_PS(PCR_PS_ps1)
+
+                     /* Pull Enable: Enables. */
+                     | PORT_PCR_PE(PCR_PE_pe1)
+
+                     /* Open Drain Enable: Enables. */
+                     | PORT_PCR_ODE(PCR_ODE_ode1)
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
 
     const port_pin_config_t port1_8_pinA1_config = {/* Internal pull-up/down resistor is disabled */
                                                     .pullSelect = kPORT_PullDisable,
