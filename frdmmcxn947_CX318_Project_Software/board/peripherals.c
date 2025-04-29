@@ -70,6 +70,7 @@ instance:
   - nvic:
     - interrupt_table:
       - 0: []
+      - 1: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -100,7 +101,7 @@ instance:
       - SCTInputClockSourceFreq: 'custom:0'
       - clockSelect: 'kSCTIMER_Clock_On_Rise_Input_0'
       - enableCounterUnify: 'true'
-      - enableBidirection_l: 'false'
+      - enableBidirection_l: 'true'
       - enableBidirection_h: 'false'
       - prescale_l: '1'
       - prescale_h: '1'
@@ -120,41 +121,96 @@ instance:
         - output: 'kSCTIMER_Out_4'
         - level: 'kSCTIMER_HighTrue'
         - dutyCyclePercent: '50'
+      - 1:
+        - output: 'kSCTIMER_Out_0'
+        - level: 'kSCTIMER_LowTrue'
+        - dutyCyclePercent: '0'
     - pwmMode: 'kSCTIMER_CenterAlignedPwm'
     - pwmFrequency: '24000'
     - events: []
     - states:
       - 0:
-        - pwms: 'pwm0'
+        - pwms: 'pwm0 pwm1'
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
 const sctimer_config_t SCT0_initConfig = {
   .enableCounterUnify = true,
   .clockMode = kSCTIMER_System_ClockMode,
   .clockSelect = kSCTIMER_Clock_On_Rise_Input_0,
-  .enableBidirection_l = false,
+  .enableBidirection_l = true,
   .enableBidirection_h = false,
   .prescale_l = 0U,
   .prescale_h = 0U,
   .outInitState = 0U,
   .inputsync = (uint8_t)(SCT0_INPUTSYNC_0 | SCT0_INPUTSYNC_1 | SCT0_INPUTSYNC_2 | SCT0_INPUTSYNC_3)
 };
-const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[1] = {
+const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[2] = {
   {
     .output = kSCTIMER_Out_4,
     .level = kSCTIMER_HighTrue,
     .dutyCyclePercent = 50U
+  },
+  {
+    .output = kSCTIMER_Out_0,
+    .level = kSCTIMER_LowTrue,
+    .dutyCyclePercent = 0U
   }
 };
-uint32_t SCT0_pwmEvent[1];
+uint32_t SCT0_pwmEvent[2];
 
 static void SCT0_init(void) {
   SCTIMER_Init(SCT0_PERIPHERAL, &SCT0_initConfig);
   /* Initialization of state 0 */
   SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[0], kSCTIMER_CenterAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[0]);
+  SCTIMER_SetupPwm(SCT0_PERIPHERAL, &SCT0_pwmSignalsConfig[1], kSCTIMER_CenterAlignedPwm, 24000U, SCT0_CLOCK_FREQ, &SCT0_pwmEvent[1]);
   /* Enable interrupt SCT0_IRQN request in the NVIC */
   EnableIRQ(SCT0_IRQN);
   SCTIMER_StartTimer(SCT0_PERIPHERAL, kSCTIMER_Counter_U);
+}
+
+/***********************************************************************************************************************
+ * GPIO1 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'GPIO1'
+- type: 'gpio'
+- mode: 'GPIO'
+- custom_name_enabled: 'false'
+- type_id: 'gpio_2.7.0'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'GPIO1'
+- config_sets:
+  - fsl_gpio:
+    - enable_irq: 'true'
+    - port_interrupt:
+      - IRQn: 'GPIO10_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '0'
+      - enable_custom_name: 'false'
+    - enable_irq_1: 'false'
+    - gpio_interrupt_1:
+      - IRQn: 'GPIO01_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '1'
+      - enable_custom_name: 'false'
+    - enable_irq_EFT: 'false'
+    - port_interrupt_EFT:
+      - IRQn: 'noInt'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '2'
+      - enable_custom_name: 'false'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+
+static void GPIO1_init(void) {
+  /* Make sure, the clock gate for port 1 is enabled (e. g. in pin_mux.c) */
+  /* Enable interrupt GPIO1_INT_0_IRQN request in the NVIC */
+  EnableIRQ(GPIO1_INT_0_IRQN);
 }
 
 /***********************************************************************************************************************
@@ -164,6 +220,7 @@ void BOARD_InitPeripherals(void)
 {
   /* Initialize components */
   SCT0_init();
+  GPIO1_init();
 }
 
 /***********************************************************************************************************************

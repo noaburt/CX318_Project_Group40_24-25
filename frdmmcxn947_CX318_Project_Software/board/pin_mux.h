@@ -25,6 +25,67 @@ extern "C" {
  */
 void BOARD_InitBootPins(void);
 
+#define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
+#define PCR_ODE_ode1 0x01u /*!<@brief Open Drain Enable: Enables */
+#define PCR_PE_pe1 0x01u   /*!<@brief Pull Enable: Enables */
+#define PCR_PS_ps1 0x01u   /*!<@brief Pull Select: Enables internal pullup resistor */
+
+/*! @name PORT1_12 (coord D2), IO_START
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_INITPINS_IO_START_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
+#define BOARD_INITPINS_IO_START_GPIO_PIN 12U              /*!<@brief GPIO pin number */
+#define BOARD_INITPINS_IO_START_GPIO_PIN_MASK (1U << 12U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define BOARD_INITPINS_IO_START_PORT PORT1                /*!<@brief PORT peripheral base pointer */
+#define BOARD_INITPINS_IO_START_PIN 12U                   /*!<@brief PORT pin number */
+#define BOARD_INITPINS_IO_START_PIN_MASK (1U << 12U)      /*!<@brief PORT pin mask */
+                                                          /* @} */
+
+/*! @name PORT1_21 (coord L5), IO_BREAK
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_INITPINS_IO_BREAK_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
+#define BOARD_INITPINS_IO_BREAK_GPIO_PIN 21U              /*!<@brief GPIO pin number */
+#define BOARD_INITPINS_IO_BREAK_GPIO_PIN_MASK (1U << 21U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define BOARD_INITPINS_IO_BREAK_PORT PORT1                /*!<@brief PORT peripheral base pointer */
+#define BOARD_INITPINS_IO_BREAK_PIN 21U                   /*!<@brief PORT pin number */
+#define BOARD_INITPINS_IO_BREAK_PIN_MASK (1U << 21U)      /*!<@brief PORT pin mask */
+                                                          /* @} */
+
+/*! @name PORT1_22 (coord L4), IO_FINISH
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_INITPINS_IO_FINISH_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
+#define BOARD_INITPINS_IO_FINISH_GPIO_PIN 22U              /*!<@brief GPIO pin number */
+#define BOARD_INITPINS_IO_FINISH_GPIO_PIN_MASK (1U << 22U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define BOARD_INITPINS_IO_FINISH_PORT PORT1                /*!<@brief PORT peripheral base pointer */
+#define BOARD_INITPINS_IO_FINISH_PIN 22U                   /*!<@brief PORT pin number */
+#define BOARD_INITPINS_IO_FINISH_PIN_MASK (1U << 22U)      /*!<@brief PORT pin mask */
+                                                           /* @} */
+
+/*! @name PORT1_23 (coord M4), IO_TRACK
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define BOARD_INITPINS_IO_TRACK_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
+#define BOARD_INITPINS_IO_TRACK_GPIO_PIN 23U              /*!<@brief GPIO pin number */
+#define BOARD_INITPINS_IO_TRACK_GPIO_PIN_MASK (1U << 23U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define BOARD_INITPINS_IO_TRACK_PORT PORT1                /*!<@brief PORT peripheral base pointer */
+#define BOARD_INITPINS_IO_TRACK_PIN 23U                   /*!<@brief PORT pin number */
+#define BOARD_INITPINS_IO_TRACK_PIN_MASK (1U << 23U)      /*!<@brief PORT pin mask */
+                                                          /* @} */
+
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
@@ -56,7 +117,23 @@ void BOARD_InitPins(void);
  */
 void MAX_InitIPins(void);
 
-#define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
+#define PCR_IBE_ibe1 0x01u        /*!<@brief Input Buffer Enable: Enables */
+#define PORT5_PCR_MUX_mux00 0x00u /*!<@brief Pin Multiplex Control: Alternative 0 (GPIO) */
+
+/*! @name PORT5_9 (coord M14), LED_SELECT
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define PWM_INITPINS_LED_SELECT_GPIO GPIO5               /*!<@brief GPIO peripheral base pointer */
+#define PWM_INITPINS_LED_SELECT_INIT_GPIO_VALUE 0U       /*!<@brief GPIO output initial state */
+#define PWM_INITPINS_LED_SELECT_GPIO_PIN 9U              /*!<@brief GPIO pin number */
+#define PWM_INITPINS_LED_SELECT_GPIO_PIN_MASK (1U << 9U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define PWM_INITPINS_LED_SELECT_PORT PORT5               /*!<@brief PORT peripheral base pointer */
+#define PWM_INITPINS_LED_SELECT_PIN 9U                   /*!<@brief PORT pin number */
+#define PWM_INITPINS_LED_SELECT_PIN_MASK (1U << 9U)      /*!<@brief PORT pin mask */
+                                                         /* @} */
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.

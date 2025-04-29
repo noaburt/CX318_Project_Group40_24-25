@@ -12,6 +12,7 @@
 #include "fsl_common.h"
 #include "fsl_clock.h"
 #include "fsl_sctimer.h"
+#include "fsl_gpio.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -38,13 +39,21 @@ extern "C" {
 #define SCT0_INPUTSYNC_2 (1U << 2U)
 /* Sync input 3 mask */
 #define SCT0_INPUTSYNC_3 (1U << 3U)
+/* Alias for GPIO1 peripheral */
+#define GPIO1_GPIO GPIO1
+/* Alias for PORT1 */
+#define GPIO1_PORT PORT1
+/* GPIO1 interrupt vector ID (number). */
+#define GPIO1_INT_0_IRQN GPIO10_IRQn
+/* GPIO1 interrupt handler identifier. */
+#define GPIO1_INT_0_IRQHANDLER GPIO10_IRQHandler
 
 /***********************************************************************************************************************
  * Global variables
  **********************************************************************************************************************/
 extern const sctimer_config_t SCT0_initConfig;
-extern const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[1];
-extern uint32_t SCT0_pwmEvent[1];
+extern const sctimer_pwm_signal_param_t SCT0_pwmSignalsConfig[2];
+extern uint32_t SCT0_pwmEvent[2];
 
 /***********************************************************************************************************************
  * Initialization functions
