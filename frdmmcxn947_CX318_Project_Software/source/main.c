@@ -21,6 +21,7 @@
 #define APP_DEFAULT_PWM_FREQUENCY (1000UL)
 #endif
 
+/* Initialise PWM signals */
 static void PWM_DRV_Init3PhPwm(void)
 {
     uint16_t deadTimeVal;
@@ -73,20 +74,19 @@ static void PWM_DRV_Init3PhPwm(void)
 
 
 
-/* Return from main when error without ACTUALLY returning */
+/* Return from main when error without ACTUALLY returning, for showing errors */
 void MAIN_CheckErr(status_t result, char* occurrence) {
 
 	if (result == kStatus_Success) { return; }
 	PRINTF("PROGRAM FAILED AT: %s with %d\r\n", occurrence, result);
 
 	MAIN_ResetGame();
-	//MAIN_PauseIRQs();
 
 	OLED_Reset();
-
 	sprintf(buffer, "PROGRAM FAILED AT:\n%s (%d)", occurrence, result);
 	OLED_Print(buffer);
 
+	/* Show error on display, trapped here forever */
 	while (1);
 
 	exit;
@@ -130,23 +130,24 @@ void MAIN_ShowBreak() {
 	OLED_Print(buffer);
 }
 
-/* Reset score keeping values */
+/* Reset all game variables */
 void MAIN_ResetGame() {
+
+	/* State and timer variables */
 	STATE = STATE_WAIT;
 
 	runTimer = 0U;
 	timerFlag = 0U;
 
+	/* Player scoring */
 	playerBuzzes = 0U;
 	playerTime = 60U;
 	displayScore = 0U;
 
+	/* Heart rate measuring */
 	Heartrate_Array_Index = 0;
 	Average = 0;
 	Heartrate_Array[16] = (uint32_t) {0};
-
-	motorDelay = PWM_BASE_DELAY;
-	ledDelay = PWM_BASE_DELAY;
 }
 
 /* Setup and start MAX30102 */
@@ -179,7 +180,7 @@ void MAX_ReadFirst(uint32_t led_min, uint32_t led_max, int i) {
 	}
 }
 
-/* Sample new readings */
+/* Sample all new readings */
 void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, uint32_t brightness) {
 	float tmp;
 
@@ -199,11 +200,7 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 
 		while (GPIO_PinRead(MAX_INITIPINS_MAX_INT_GPIO, MAX_INITIPINS_MAX_INT_GPIO_PIN) == 1) {}
 
-		//MAIN_PauseIRQs();
-
 		MAIN_CheckErr(MAX_Read_FIFO((red_buffer+i), (ir_led_buffer+i)), "Max read fifo");  //read from MAX30102 FIFO
-
-		//MAIN_ResumeIRQs();
 
 		if (red_buffer[i] > prev_data) {
 			tmp = red_buffer[i] - prev_data;
@@ -226,7 +223,7 @@ void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, 
 }
 
 
-/* Small delay */
+/* Induce delay */
 void PWM_Delay(uint32_t delay) {
 	volatile uint32_t i = 0U;
 
@@ -236,16 +233,16 @@ void PWM_Delay(uint32_t delay) {
 	}
 }
 
-/* Use interrupt to update the PWM dutycycle on output */
-void PWM_Update() {
-	MAIN_PwmInterrupt();
+/* Update the PWM dutycycle outputs */
+void MAIN_PwmUpdate() {
+	MAIN_PwmCalculate();
 
 	PWM_UpdatePwmDutycycle(BOARD_PWM_BASEADDR, kPWM_Module_0, kPWM_PwmA, kPWM_SignedCenterAligned, ledDutycycle);
-	PWM_UpdatePwmDutycycle(BOARD_PWM_BASEADDR, kPWM_Module_1, kPWM_PwmA, kPWM_SignedCenterAligned, ledDutycycle);
+	PWM_UpdatePwmDutycycle(BOARD_PWM_BASEADDR, kPWM_Module_1, kPWM_PwmA, kPWM_SignedCenterAligned, motDutycycle);
 
 	/* Set the load okay bit for all submodules to load registers from their buffer */
 	PWM_SetPwmLdok(BOARD_PWM_BASEADDR, kPWM_Control_Module_0 | kPWM_Control_Module_1, true);
-	PWM_Delay(ledDelay);
+	PWM_Delay(PWM_BASE_DELAY);
 
 
 	if (runTimer == 1U) {
@@ -260,25 +257,30 @@ void PWM_Update() {
 	}
 }
 
-void MAIN_PwmInterrupt() {
+/* Calculate / set PWM dutycycles based on game state */
+void MAIN_PwmCalculate() {
 	switch (STATE) {
 
 	case STATE_PLAY:
 		/* Logic while playing game */
 
-		/* Map heart rate from rest -> MAX to 0% -> 99% duty cycles */
-		double hr_factor = (Average * 99U) / MAX_HR;
+		/* Map heart rate to duty cycles */
+		double hr_factor = Average - MIN_HR;
+		hr_factor /= MAX_HR;
 
-		ledDutycycle = (uint8_t) ceil(hr_factor);
-		if (ledDutycycle > 99U) { ledDutycycle = 99U; }
+		ledDutycycle = (uint8_t) ceil(hr_factor * MAX_PWM);
+		if (ledDutycycle > MAX_PWM) { ledDutycycle = MAX_PWM; }
+
+		motDutycycle = (uint8_t) ceil(hr_factor * MAX_MOT_PWM);
+		if (motDutycycle > MAX_MOT_PWM) { motDutycycle = MAX_MOT_PWM; }
 
 		break;
 
 	case STATE_BREAK:
-		/* Do same as STATE_WAIT, timer is paused */
+		/* Do same as STATE_WAIT */
 
 	case STATE_FINISH:
-		/* STATE_FINISH changes to STATE_WAIT once score displayed anyway*/
+		/* Do same as STATE_WAIT */
 
 	case STATE_WAIT:
 		/* Set to flash green LEDs, don't spin motor */
@@ -298,24 +300,25 @@ void MAIN_PwmInterrupt() {
 			}
 		}
 
+		motDutycycle = 0U;
+
 		break;
 
 	}
 }
 
-/* GPIO10_IRQn interrupt handler */
-/* Change state interrupt */
+/* GPIO10_IRQn interrupt handler for changing state */
 void GPIO1_INT_0_IRQHANDLER(void) {
   /* Get pin flags 0 */
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
   uint8_t NEW_STATE = STATE;
 
-  PRINTF("GPIO\r\n");
+  //PRINTF("GPIO\r\n");
 
-  /* Interrupt code here*/
   switch (STATE) {
 
 	case STATE_PLAY:
+		/* Detect buzzes, breaks, finishes, and restarts */
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_TRACK_GPIO, BOARD_INITPINS_IO_TRACK_GPIO_PIN) == 0) {
 			playerBuzzes++;
@@ -352,6 +355,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		break;
 
 	case STATE_BREAK:
+		/* Detect break end */
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
 			NEW_STATE = STATE_PLAY;
@@ -363,6 +367,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		break;
 
 	case STATE_WAIT:
+		/* Detect starting game */
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
 			NEW_STATE = STATE_PLAY;
@@ -374,6 +379,8 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 		break;
 
 	case STATE_FINISH:
+		/* Detect restart */
+
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
 			NEW_STATE = STATE_WAIT;
 			PRINTF("WAIT from FINISH\r\n");
@@ -385,6 +392,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 	}
 
+  /* Update to new state */
   STATE = NEW_STATE;
 
   /* Clear pin flags 0 */
@@ -404,9 +412,9 @@ void GPIO1_INT_0_IRQHANDLER(void) {
  */
 int main(void)
 {
-	char ch;
 
-	/* Init board hardware. */
+	/* Init board hardware */
+
 	/* attach FRO 12M to FLEXCOMM4 (debug console) */
 	CLOCK_SetClkDiv(kCLOCK_DivFlexcom4Clk, 1u);
 	CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);
@@ -415,15 +423,15 @@ int main(void)
 	CLOCK_SetClkDiv(kCLOCK_DivTraceClk, 2U);
 	CLOCK_AttachClk(kTRACE_DIV_to_TRACE);
 
+	/* Init rest of board */
 	BOARD_InitBootPins();
 	BOARD_InitBootClocks();
 	BOARD_InitDebugConsole();
 
 	BOARD_InitPeripherals();
-
 	MAX_Begin();
 
-	/* From PWM example ------------------------------------------------------------------------------------------ */
+	/* MOVE TO FUNCTION EVENTUALLY Code from PWM example ------------------------------------------------------------------------------------------ */
 
 	/* Enable PWM1 SUB Clockn */
 	SYSCON->PWM1SUBCTL |=
@@ -481,7 +489,6 @@ int main(void)
 							 kPWM_FaultDisable_0 | kPWM_FaultDisable_1 | kPWM_FaultDisable_2 | kPWM_FaultDisable_3);
 
 	/*
-	 * Call the init function with demo configuration.
 	 * Recommend to invoke API PWM_SetupPwm after PWM and fault configuration, because reference manual advises to
 	 * set OUTEN register after other PWM configurations. But set OUTEN register before MCTRL register is okay.
 	 */
@@ -494,6 +501,7 @@ int main(void)
 	PWM_StartTimer(BOARD_PWM_BASEADDR, kPWM_Control_Module_0 | kPWM_Control_Module_1);
 
 	/* End of pwm example -----------------------------------------------------------------------------------------------*/
+
 
 	/* Variables for calculating LED brightness reflecting heart beat */
 	uint32_t led_min, led_max, prev_data;
@@ -609,6 +617,6 @@ int main(void)
 
 		}
 
-		PWM_Update();
+		MAIN_PwmUpdate();
 	}
 }

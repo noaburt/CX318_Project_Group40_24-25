@@ -6,7 +6,7 @@
  * Generated linker script file for MCXN947
  * Created from linkscript.ldt by FMCreateLinkLibraries
  * Using Freemarker v2.3.30
- * MCUXpresso IDE v24.12 [Build 148] [2025-01-10] on 29 Apr 2025, 13:31:02
+ * MCUXpresso IDE v24.12 [Build 148] [2025-01-10] on 30 Apr 2025, 10:04:32
  */
 
 INCLUDE "frdmmcxn947_countdown_Debug_library.ld"

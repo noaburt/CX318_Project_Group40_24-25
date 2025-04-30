@@ -16,16 +16,17 @@
 /* HR Sensor*/
 #define MAX_BRIGHTNESS 255
 
-#define MAX_HR 500
-#define MIN_HR 40
+#define MAX_HR 300
+#define MIN_HR 50
+
+#define MAX_PWM 80
+#define MAX_MOT_PWM 40
 
 /* SCTimer & PWM */
 #define PWM_BASE_DELAY 40000
 
 #define SCTIMER_LED_OUT kSCTIMER_Out_4
 #define SCTIMER_MOT_OUT kSCTIMER_Out_0
-
-#define MAX_MOT_DUTY 50U
 
 /* LED */
 #define SET_GRN 0
@@ -57,14 +58,14 @@ void MAIN_ShowBreak();
 
 void MAIN_ResetGame();
 
-void MAIN_PwmInterrupt();
+void MAIN_PwmCalculate();
 
 void MAX_Begin();
 void MAX_ReadFirst(uint32_t led_min, uint32_t led_max, int i);
 void MAX_ReadAll(uint32_t led_min, uint32_t led_max, uint32_t prev_data, int i, uint32_t brightness);
 
 void PWM_Delay(uint32_t delay);
-void PWM_Update();
+void MAIN_PwmUpdate();
 
 uint32_t Heartrate_Array[16] = {0};
 int Heartrate_Array_Index;
@@ -93,8 +94,7 @@ uint8_t brightnessUp;
 uint8_t gpioFlag;
 
 uint8_t ledDutycycle;
-uint32_t ledDelay;
-uint32_t motorDelay;
+uint8_t motDutycycle;
 
 uint8_t runTimer;
 uint8_t timerFlag;
