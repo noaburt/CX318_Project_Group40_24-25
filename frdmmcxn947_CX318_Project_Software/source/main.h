@@ -20,10 +20,12 @@
 #define MIN_HR 50
 
 #define MAX_PWM 80
-#define MAX_MOT_PWM 40
+#define MAX_MOT_PWM 70
 
-/* SCTimer & PWM */
+/* PWM & Timer */
 #define PWM_BASE_DELAY 40000
+#define GAME_TIME 60
+
 
 #define SCTIMER_LED_OUT kSCTIMER_Out_4
 #define SCTIMER_MOT_OUT kSCTIMER_Out_0
@@ -92,6 +94,7 @@ uint8_t dummy;					// General 'dummy' variable
 
 uint8_t brightnessUp;
 uint8_t gpioFlag;
+uint8_t outOfTimeFlag;
 
 uint8_t ledDutycycle;
 uint8_t motDutycycle;

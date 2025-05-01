@@ -36,7 +36,7 @@ static void PWM_DRV_Init3PhPwm(void)
 
     pwmSignal[0].pwmChannel       = kPWM_PwmA;
     pwmSignal[0].level            = kPWM_HighTrue;
-    pwmSignal[0].dutyCyclePercent = 50; /* 1 percent dutycycle */
+    pwmSignal[0].dutyCyclePercent = 0; /* 1 percent dutycycle */
     pwmSignal[0].deadtimeValue    = deadTimeVal;
     pwmSignal[0].faultState       = kPWM_PwmFaultState0;
     pwmSignal[0].pwmchannelenable = true;
@@ -44,7 +44,7 @@ static void PWM_DRV_Init3PhPwm(void)
     pwmSignal[1].pwmChannel = kPWM_PwmB;
     pwmSignal[1].level      = kPWM_HighTrue;
     /* Dutycycle field of PWM B does not matter as we are running in PWM A complementary mode */
-    pwmSignal[1].dutyCyclePercent = 50;
+    pwmSignal[1].dutyCyclePercent = 0;
     pwmSignal[1].deadtimeValue    = deadTimeVal;
     pwmSignal[1].faultState       = kPWM_PwmFaultState0;
     pwmSignal[1].pwmchannelenable = true;
@@ -102,7 +102,9 @@ int MAIN_CalculateScore() {
 void MAIN_ShowScore() {
 	OLED_Reset();
 
-	sprintf(buffer, "Final Score: %02d!\nWell Done!", displayScore);
+	sprintf(buffer, "Final Score: %02d!\nYou took %02d seconds\nWell Done!", displayScore, (GAME_TIME - playerTime));
+	PRINTF(buffer);
+
 	OLED_Print(buffer);
 }
 
@@ -110,7 +112,14 @@ void MAIN_ShowScore() {
 void MAIN_ShowTime() {
 	OLED_Reset();
 
-	sprintf(buffer, "Time left:\n%02d seconds", playerTime);
+	if (outOfTimeFlag == 0U) {
+		sprintf(buffer, "Time left:\n%02d seconds", playerTime);
+	} else {
+		playerTime = 0U;
+		sprintf(buffer, "You are out of time");
+	}
+	PRINTF(buffer);
+
 	OLED_Print(buffer);
 }
 
@@ -119,6 +128,7 @@ void MAIN_ShowWait() {
 	OLED_Reset();
 
 	sprintf(buffer, "Ready to play!\nLift Hook off Start\nto begin.");
+	PRINTF(buffer);
 	OLED_Print(buffer);
 }
 
@@ -127,6 +137,8 @@ void MAIN_ShowBreak() {
 	OLED_Reset();
 
 	sprintf(buffer, "Relax...");
+	PRINTF(buffer);
+
 	OLED_Print(buffer);
 }
 
@@ -138,10 +150,11 @@ void MAIN_ResetGame() {
 
 	runTimer = 0U;
 	timerFlag = 0U;
+	outOfTimeFlag = 0U;
 
 	/* Player scoring */
 	playerBuzzes = 0U;
-	playerTime = 60U;
+	playerTime = GAME_TIME;
 	displayScore = 0U;
 
 	/* Heart rate measuring */
@@ -178,6 +191,7 @@ void MAX_ReadFirst(uint32_t led_min, uint32_t led_max, int i) {
 		if (red_buffer[i] > led_max) { led_max = red_buffer[i]; }
 
 	}
+	PRINTF("READ ALL\r\n");
 }
 
 /* Sample all new readings */
@@ -245,11 +259,13 @@ void MAIN_PwmUpdate() {
 	PWM_Delay(PWM_BASE_DELAY);
 
 
-	if (runTimer == 1U) {
+	if (runTimer == 1U && outOfTimeFlag == 0U) {
 		if (timerFlag == 1U) {
 			timerFlag = 0U;
 
 			playerTime--;
+
+			if (playerTime <= 0) { outOfTimeFlag = 1U; }
 			MAIN_ShowTime();
 		} else {
 			timerFlag = 1U;
@@ -265,14 +281,14 @@ void MAIN_PwmCalculate() {
 		/* Logic while playing game */
 
 		/* Map heart rate to duty cycles */
-		double hr_factor = Average - MIN_HR;
+		double hr_factor = Average;
 		hr_factor /= MAX_HR;
 
-		ledDutycycle = (uint8_t) ceil(hr_factor * MAX_PWM);
+		ledDutycycle = (uint8_t) ceil(hr_factor * 99U);
 		if (ledDutycycle > MAX_PWM) { ledDutycycle = MAX_PWM; }
 
-		motDutycycle = (uint8_t) ceil(hr_factor * MAX_MOT_PWM);
-		if (motDutycycle > MAX_MOT_PWM) { motDutycycle = MAX_MOT_PWM; }
+		//motDutycycle = (uint8_t) ceil(hr_factor * 99U);
+		//if (motDutycycle > MAX_MOT_PWM) { motDutycycle = MAX_MOT_PWM; }
 
 		break;
 
@@ -313,7 +329,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
   uint8_t NEW_STATE = STATE;
 
-  //PRINTF("GPIO\r\n");
+  PRINTF("GPIO\r\n");
 
   switch (STATE) {
 
@@ -385,6 +401,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 			NEW_STATE = STATE_WAIT;
 			PRINTF("WAIT from FINISH\r\n");
 
+			MAIN_ResetGame();
 			MAIN_ShowWait();
 		}
 
@@ -429,6 +446,7 @@ int main(void)
 	BOARD_InitDebugConsole();
 
 	BOARD_InitPeripherals();
+    OLED_Init();
 	MAX_Begin();
 
 	/* MOVE TO FUNCTION EVENTUALLY Code from PWM example ------------------------------------------------------------------------------------------ */
@@ -488,18 +506,6 @@ int main(void)
 	PWM_SetupFaultDisableMap(BOARD_PWM_BASEADDR, kPWM_Module_1, kPWM_PwmA, kPWM_faultchannel_0,
 							 kPWM_FaultDisable_0 | kPWM_FaultDisable_1 | kPWM_FaultDisable_2 | kPWM_FaultDisable_3);
 
-	/*
-	 * Recommend to invoke API PWM_SetupPwm after PWM and fault configuration, because reference manual advises to
-	 * set OUTEN register after other PWM configurations. But set OUTEN register before MCTRL register is okay.
-	 */
-	PWM_DRV_Init3PhPwm();
-
-	/* Set the load okay bit for all submodules to load registers from their buffer */
-	PWM_SetPwmLdok(BOARD_PWM_BASEADDR, kPWM_Control_Module_0 | kPWM_Control_Module_1, true);
-
-	/* Start the PWM generation from Submodules 0, 1 and 2 */
-	PWM_StartTimer(BOARD_PWM_BASEADDR, kPWM_Control_Module_0 | kPWM_Control_Module_1);
-
 	/* End of pwm example -----------------------------------------------------------------------------------------------*/
 
 
@@ -526,11 +532,12 @@ int main(void)
 	ir_buffer_len = 500;
 
 	PRINTF("INITIALISED\r\n");
-    OLED_Init();
 	OLED_Reset();
 
 	sprintf(buffer, "Waiting...\nPlace Hook on Start");
 	OLED_Print(buffer);
+	PRINTF(buffer);
+
 
 	/* Wait until hook is placed on start */
 	while (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 1) {}
@@ -545,6 +552,18 @@ int main(void)
 
 		prev_data = red_buffer[i];
 	}
+
+	/*
+	 * Recommend to invoke API PWM_SetupPwm after PWM and fault configuration, because reference manual advises to
+	 * set OUTEN register after other PWM configurations. But set OUTEN register before MCTRL register is okay.
+	 */
+	PWM_DRV_Init3PhPwm();
+
+	/* Set the load okay bit for all submodules to load registers from their buffer */
+	PWM_SetPwmLdok(BOARD_PWM_BASEADDR, kPWM_Control_Module_0 | kPWM_Control_Module_1, true);
+
+	/* Start the PWM generation from Submodules 0, 1 and 2 */
+	PWM_StartTimer(BOARD_PWM_BASEADDR, kPWM_Control_Module_0 | kPWM_Control_Module_1);
 
 	PRINTF("BEGINNING\r\n");
 	MAIN_ShowWait();
@@ -562,7 +581,8 @@ int main(void)
 			/* Calculate hr and Sp02 after first 500 samples (5 seconds) */
 			maxim_heart_rate_and_oxygen_saturation(ir_led_buffer, ir_buffer_len, red_buffer, &spo2, &spo2_valid, &heart_rate, &hr_valid);
 
-			GPIO_PinWrite(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_GPIO_PIN, SET_RED);
+			GPIO_PinWrite(PWM_INITPINS_LED_GREEN_GPIO, PWM_INITPINS_LED_GREEN_GPIO_PIN, 0);
+			GPIO_PinWrite(PWM_INITPINS_LED_RED_GPIO, PWM_INITPINS_LED_RED_GPIO_PIN, 1);
 
 			led_min = 0x3FFFF;
 			led_max = 0;
@@ -606,7 +626,8 @@ int main(void)
 
 		case STATE_WAIT:
 			/* Set to flash green LEDs */
-			GPIO_PinWrite(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_GPIO_PIN, SET_GRN);
+			GPIO_PinWrite(PWM_INITPINS_LED_GREEN_GPIO, PWM_INITPINS_LED_GREEN_GPIO_PIN, 1);
+			GPIO_PinWrite(PWM_INITPINS_LED_RED_GPIO, PWM_INITPINS_LED_RED_GPIO_PIN, 0);
 
 			break;
 
