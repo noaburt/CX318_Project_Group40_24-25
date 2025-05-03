@@ -15,8 +15,9 @@ processor_version: 24.12.10
 pin_labels:
 - {pin_num: L14, pin_signal: PIO5_8/TRIG_OUT7/TAMPER6/ADC1_B16, label: MAX_INT, identifier: MAX_INT}
 - {pin_num: H3, pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0, label: SCT_MOT_OUT}
-- {pin_num: M14, pin_signal: PIO5_9/TAMPER7/ADC1_B17, label: LED_SELECT, identifier: LED_SELECT}
-- {pin_num: K2, pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK, label: SCT_LED_OUT}
+- {pin_num: M14, pin_signal: PIO5_9/TAMPER7/ADC1_B17, label: LED_GREEN, identifier: LED_SELECT;LED_GREEN}
+- {pin_num: K2, pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK, label: PWM_LED_OUT,
+  identifier: PWM_MOT_OUT;PWM_LED_OUT}
 - {pin_num: D2, pin_signal: PIO1_12/WUU0_IN12/TRACE_CLK/FC4_P4/FC3_P0/CT2_MAT2/SCT0_OUT4/FLEXIO0_D20/SMARTDMA_PIO8/PLU_OUT2/ENET0_RXER/CAN1_RXD/TSI0_CH21/ADC1_A12,
   label: IO_START, identifier: IO_START}
 - {pin_num: D1, pin_signal: PIO1_13/TRIG_IN3/FC4_P5/FC3_P1/CT2_MAT3/SCT0_OUT5/FLEXIO0_D21/SMARTDMA_PIO9/PLU_OUT3/ENET0_RXDV/CAN1_TXD/TSI0_CH22/ADC1_A13, label: IO_BREAK,
@@ -25,6 +26,13 @@ pin_labels:
 - {pin_num: M4, pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, label: IO_TRACK, identifier: IO_TRACK}
 - {pin_num: L5, pin_signal: PIO1_21/TRIG_OUT2/FC5_P5/FC4_P1/CT3_MAT3/SCT0_OUT9/FLEXIO0_D29/SMARTDMA_PIO17/PLU_OUT7/ENET0_MDIO/SAI1_MCLK/CAN1_RXD/ADC1_A21/CMP2_IN3,
   label: IO_BREAK, identifier: IO_BREAK}
+- {pin_num: K1, pin_signal: PIO2_5/TRIG_OUT3/FC9_P2/SDHC0_CMD/SCT0_OUT3/PWM1_B1/FLEXIO0_D13/SMARTDMA_PIO25/FLEXSPI0_B_DATA1/SINC0_MBIT1/SAI0_TXD1, label: SCT_LED_OUT}
+- {pin_num: B17, pin_signal: PIO3_0/WUU0_IN22/TRIG_IN0/FC7_P3/CT_INP16/PWM0_A0/FLEXIO0_D8/SMARTDMA_PIO0/FLEXSPI0_A_SS0_b, label: PWM_MOT_OUT, identifier: PWM_MOT_OUT}
+- {pin_num: K3, pin_signal: PIO2_4/WUU0_IN17/FC9_P0/SDHC0_CLK/SCT0_OUT2/PWM1_A1/FLEXIO0_D12/SMARTDMA_PIO24/FLEXSPI0_B_DATA0/SINC0_MCLK1/SAI0_RXD1, label: PWM_MOT_OUT,
+  identifier: PWM_MOT_OUT}
+- {pin_num: A2, pin_signal: PIO1_7/WUU0_IN9/TRIG_OUT2/FC5_P3/CT_INP7/SCT0_IN1/FLEXIO0_D15/SMARTDMA_PIO3/PLU_CLK/ENET0_TXD1/SAI1_RX_FS/CAN1_RXD/TSI0_CH7/ADC0_A23,
+  label: IO_BREAK, identifier: IO_BREAK}
+- {pin_num: H2, pin_signal: PIO2_0/TRIG_IN5/FC9_P6/SDHC0_D5/SCT0_IN0/PWM1_A3/FLEXIO0_D8/SMARTDMA_PIO20/FLEXSPI0_B_SS1_b/SAI0_RX_BCLK, label: LED_RED, identifier: LED_RED}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -62,11 +70,11 @@ BOARD_InitPins:
     pull_select: down, pull_enable: disable, input_buffer: enable, invert_input: normal}
   - {pin_num: D2, peripheral: GPIO1, signal: 'GPIO, 12', pin_signal: PIO1_12/WUU0_IN12/TRACE_CLK/FC4_P4/FC3_P0/CT2_MAT2/SCT0_OUT4/FLEXIO0_D20/SMARTDMA_PIO8/PLU_OUT2/ENET0_RXER/CAN1_RXD/TSI0_CH21/ADC1_A12,
     direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge, open_drain: enable, pull_select: up, pull_enable: enable}
-  - {pin_num: L5, peripheral: GPIO1, signal: 'GPIO, 21', pin_signal: PIO1_21/TRIG_OUT2/FC5_P5/FC4_P1/CT3_MAT3/SCT0_OUT9/FLEXIO0_D29/SMARTDMA_PIO17/PLU_OUT7/ENET0_MDIO/SAI1_MCLK/CAN1_RXD/ADC1_A21/CMP2_IN3,
+  - {pin_num: A2, peripheral: GPIO1, signal: 'GPIO, 7', pin_signal: PIO1_7/WUU0_IN9/TRIG_OUT2/FC5_P3/CT_INP7/SCT0_IN1/FLEXIO0_D15/SMARTDMA_PIO3/PLU_CLK/ENET0_TXD1/SAI1_RX_FS/CAN1_RXD/TSI0_CH7/ADC0_A23,
     direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge, open_drain: enable, pull_select: up, pull_enable: enable}
   - {pin_num: L4, peripheral: GPIO1, signal: 'GPIO, 22', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, direction: INPUT,
-    gpio_per_interrupt: kGPIO_InterruptFallingEdge, open_drain: enable, pull_select: up, pull_enable: enable}
-  - {pin_num: M4, peripheral: GPIO1, signal: 'GPIO, 23', pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptFallingEdge,
+    gpio_per_interrupt: kGPIO_InterruptEitherEdge, open_drain: enable, pull_select: up, pull_enable: enable}
+  - {pin_num: M4, peripheral: GPIO1, signal: 'GPIO, 23', pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge,
     open_drain: enable, pull_select: up, pull_enable: enable}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
@@ -87,19 +95,19 @@ void BOARD_InitPins(void)
     /* Enables the clock for PORT1: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port1);
 
+    gpio_pin_config_t IO_BREAK_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO1_7 (pin A2)  */
+    GPIO_PinInit(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, &IO_BREAK_config);
+
     gpio_pin_config_t IO_START_config = {
         .pinDirection = kGPIO_DigitalInput,
         .outputLogic = 0U
     };
     /* Initialize GPIO functionality on pin PIO1_12 (pin D2)  */
     GPIO_PinInit(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_PIN, &IO_START_config);
-
-    gpio_pin_config_t IO_BREAK_config = {
-        .pinDirection = kGPIO_DigitalInput,
-        .outputLogic = 0U
-    };
-    /* Initialize GPIO functionality on pin PIO1_21 (pin L5)  */
-    GPIO_PinInit(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, &IO_BREAK_config);
 
     gpio_pin_config_t IO_FINISH_config = {
         .pinDirection = kGPIO_DigitalInput,
@@ -118,14 +126,14 @@ void BOARD_InitPins(void)
     /* Interrupt configuration on GPIO1_12 (pin D2): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_PIN, kGPIO_InterruptEitherEdge);
 
-    /* Interrupt configuration on GPIO1_21 (pin L5): Interrupt on either edge */
+    /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt on either edge */
+    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_PIN, kGPIO_InterruptEitherEdge);
+
+    /* Interrupt configuration on GPIO1_23 (pin M4): Interrupt on either edge */
+    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_TRACK_GPIO, BOARD_INITPINS_IO_TRACK_PIN, kGPIO_InterruptEitherEdge);
+
+    /* Interrupt configuration on GPIO1_7 (pin A2): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_PIN, kGPIO_InterruptEitherEdge);
-
-    /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt on falling edge */
-    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_PIN, kGPIO_InterruptFallingEdge);
-
-    /* Interrupt configuration on GPIO1_23 (pin M4): Interrupt on falling edge */
-    GPIO_SetPinInterruptConfig(BOARD_INITPINS_IO_TRACK_GPIO, BOARD_INITPINS_IO_TRACK_PIN, kGPIO_InterruptFallingEdge);
 
     const port_pin_config_t port0_2_pinB16_config = {/* Internal pull-up/down resistor is disabled */
                                                      .pullSelect = kPORT_PullDisable,
@@ -154,25 +162,6 @@ void BOARD_InitPins(void)
     PORT_SetPinMux(BOARD_INITPINS_IO_START_PORT, BOARD_INITPINS_IO_START_PIN, kPORT_MuxAlt0);
 
     PORT1->PCR[12] = ((PORT1->PCR[12] &
-                       /* Mask bits to zero which are setting */
-                       (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_ODE_MASK | PORT_PCR_IBE_MASK)))
-
-                      /* Pull Select: Enables internal pullup resistor. */
-                      | PORT_PCR_PS(PCR_PS_ps1)
-
-                      /* Pull Enable: Enables. */
-                      | PORT_PCR_PE(PCR_PE_pe1)
-
-                      /* Open Drain Enable: Enables. */
-                      | PORT_PCR_ODE(PCR_ODE_ode1)
-
-                      /* Input Buffer Enable: Enables. */
-                      | PORT_PCR_IBE(PCR_IBE_ibe1));
-
-    /* PORT1_21 (pin L5) is configured as PIO1_21 */
-    PORT_SetPinMux(BOARD_INITPINS_IO_BREAK_PORT, BOARD_INITPINS_IO_BREAK_PIN, kPORT_MuxAlt0);
-
-    PORT1->PCR[21] = ((PORT1->PCR[21] &
                        /* Mask bits to zero which are setting */
                        (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_ODE_MASK | PORT_PCR_IBE_MASK)))
 
@@ -225,6 +214,25 @@ void BOARD_InitPins(void)
 
                       /* Input Buffer Enable: Enables. */
                       | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT1_7 (pin A2) is configured as PIO1_7 */
+    PORT_SetPinMux(BOARD_INITPINS_IO_BREAK_PORT, BOARD_INITPINS_IO_BREAK_PIN, kPORT_MuxAlt0);
+
+    PORT1->PCR[7] = ((PORT1->PCR[7] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_PS_MASK | PORT_PCR_PE_MASK | PORT_PCR_ODE_MASK | PORT_PCR_IBE_MASK)))
+
+                     /* Pull Select: Enables internal pullup resistor. */
+                     | PORT_PCR_PS(PCR_PS_ps1)
+
+                     /* Pull Enable: Enables. */
+                     | PORT_PCR_PE(PCR_PE_pe1)
+
+                     /* Open Drain Enable: Enables. */
+                     | PORT_PCR_ODE(PCR_ODE_ode1)
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
 
     const port_pin_config_t port1_8_pinA1_config = {/* Internal pull-up/down resistor is disabled */
                                                     .pullSelect = kPORT_PullDisable,
@@ -354,9 +362,12 @@ void MAX_InitIPins(void)
 PWM_InitPins:
 - options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
 - pin_list:
-  - {pin_num: K2, peripheral: SCT0, signal: 'OUT, 4', pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK}
-  - {pin_num: H3, peripheral: SCT0, signal: 'OUT, 0', pin_signal: PIO2_2/WUU0_IN16/CLKOUT/FC9_P3/SDHC0_D1/SCT0_OUT0/PWM1_A2/FLEXIO0_D10/SMARTDMA_PIO22/FLEXSPI0_B_SS0_b/SINC0_MCLK0/SAI0_TXD0}
-  - {pin_num: M14, peripheral: GPIO5, signal: 'GPIO, 9', pin_signal: PIO5_9/TAMPER7/ADC1_B17, direction: OUTPUT}
+  - {pin_num: M14, peripheral: GPIO5, signal: 'GPIO, 9', pin_signal: PIO5_9/TAMPER7/ADC1_B17, identifier: LED_GREEN, direction: OUTPUT, gpio_init_state: 'true'}
+  - {pin_num: K2, peripheral: PWM1, signal: 'A, 0', pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK,
+    identifier: PWM_LED_OUT}
+  - {pin_num: K3, peripheral: PWM1, signal: 'A, 1', pin_signal: PIO2_4/WUU0_IN17/FC9_P0/SDHC0_CLK/SCT0_OUT2/PWM1_A1/FLEXIO0_D12/SMARTDMA_PIO24/FLEXSPI0_B_DATA0/SINC0_MCLK1/SAI0_RXD1}
+  - {pin_num: H2, peripheral: GPIO2, signal: 'GPIO, 0', pin_signal: PIO2_0/TRIG_IN5/FC9_P6/SDHC0_D5/SCT0_IN0/PWM1_A3/FLEXIO0_D8/SMARTDMA_PIO20/FLEXSPI0_B_SS1_b/SAI0_RX_BCLK,
+    direction: OUTPUT, gpio_init_state: 'true'}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -369,28 +380,47 @@ PWM_InitPins:
  * END ****************************************************************************************************************/
 void PWM_InitPins(void)
 {
+    /* Enables the clock for GPIO2: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Gpio2);
     /* Enables the clock for PORT2: Enables clock */
     CLOCK_EnableClock(kCLOCK_Port2);
 
-    gpio_pin_config_t LED_SELECT_config = {
+    gpio_pin_config_t LED_RED_config = {
         .pinDirection = kGPIO_DigitalOutput,
-        .outputLogic = 0U
+        .outputLogic = 1U
+    };
+    /* Initialize GPIO functionality on pin PIO2_0 (pin H2)  */
+    GPIO_PinInit(PWM_INITPINS_LED_RED_GPIO, PWM_INITPINS_LED_RED_PIN, &LED_RED_config);
+
+    gpio_pin_config_t LED_GREEN_config = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 1U
     };
     /* Initialize GPIO functionality on pin PIO5_9 (pin M14)  */
-    GPIO_PinInit(PWM_INITPINS_LED_SELECT_GPIO, PWM_INITPINS_LED_SELECT_PIN, &LED_SELECT_config);
+    GPIO_PinInit(PWM_INITPINS_LED_GREEN_GPIO, PWM_INITPINS_LED_GREEN_PIN, &LED_GREEN_config);
 
-    /* PORT2_2 (pin H3) is configured as SCT0_OUT0 */
-    PORT_SetPinMux(PORT2, 2U, kPORT_MuxAlt4);
+    /* PORT2_0 (pin H2) is configured as PIO2_0 */
+    PORT_SetPinMux(PWM_INITPINS_LED_RED_PORT, PWM_INITPINS_LED_RED_PIN, kPORT_MuxAlt0);
 
-    PORT2->PCR[2] = ((PORT2->PCR[2] &
+    PORT2->PCR[0] = ((PORT2->PCR[0] &
                       /* Mask bits to zero which are setting */
                       (~(PORT_PCR_IBE_MASK)))
 
                      /* Input Buffer Enable: Enables. */
                      | PORT_PCR_IBE(PCR_IBE_ibe1));
 
-    /* PORT2_6 (pin K2) is configured as SCT0_OUT4 */
-    PORT_SetPinMux(PORT2, 6U, kPORT_MuxAlt4);
+    /* PORT2_4 (pin K3) is configured as PWM1_A1 */
+    PORT_SetPinMux(PWM_INITPINS_PWM_MOT_OUT_PORT, PWM_INITPINS_PWM_MOT_OUT_PIN, kPORT_MuxAlt5);
+
+    PORT2->PCR[4] = ((PORT2->PCR[4] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_IBE_MASK)))
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT2_6 (pin K2) is configured as PWM1_A0 */
+    PORT_SetPinMux(PWM_INITPINS_PWM_LED_OUT_PORT, PWM_INITPINS_PWM_LED_OUT_PIN, kPORT_MuxAlt5);
 
     PORT2->PCR[6] = ((PORT2->PCR[6] &
                       /* Mask bits to zero which are setting */

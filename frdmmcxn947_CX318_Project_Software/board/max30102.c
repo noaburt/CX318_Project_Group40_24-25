@@ -1,7 +1,7 @@
-/*
- * max30102.c
+
+/* File: max30102.c
  *
- *  Altered code from shield_oled.c
+ * Last updated: 31\03\2025 - extended FIFO almost full value
  *
  */
 

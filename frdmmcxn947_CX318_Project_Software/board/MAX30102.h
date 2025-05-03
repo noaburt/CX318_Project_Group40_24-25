@@ -1,3 +1,10 @@
+
+/* File: max30102.h
+ *
+ * Last updated: 18\03\2025 - added from sample code
+ *
+ */
+
 #ifndef _MAX30102_H_
 #define _MAX30102_H_
 
