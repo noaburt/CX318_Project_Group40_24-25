@@ -1,9 +1,8 @@
-/*
- * Copyright (c) 2013 - 2015, Freescale Semiconductor, Inc.
- * Copyright 2016-2017 NXP
- * All rights reserved.
+
+/* File: main.c
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * Last updated: 01\05\2025 - finishing touches, turned down motor PWM, affecting GPIO detection
+ *
  */
 
 #include <main.h>
@@ -102,7 +101,7 @@ int MAIN_CalculateScore() {
 void MAIN_ShowScore() {
 	OLED_Reset();
 
-	sprintf(buffer, "Final Score: %02d!\nYou took %02d seconds\nWell Done!", displayScore, (GAME_TIME - playerTime));
+	sprintf(buffer, "Final Score: %02d!\nYou took %02d seconds\nWell Done!\r\n", displayScore, (GAME_TIME - playerTime));
 	PRINTF(buffer);
 
 	OLED_Print(buffer);
@@ -113,7 +112,7 @@ void MAIN_ShowTime() {
 	OLED_Reset();
 
 	if (outOfTimeFlag == 0U) {
-		sprintf(buffer, "Time left:\n%02d seconds", playerTime);
+		sprintf(buffer, "Time left:\n%02d seconds\r\n", playerTime);
 	} else {
 		playerTime = 0U;
 		sprintf(buffer, "You are out of time");
@@ -127,7 +126,7 @@ void MAIN_ShowTime() {
 void MAIN_ShowWait() {
 	OLED_Reset();
 
-	sprintf(buffer, "Ready to play!\nLift Hook off Start\nto begin.");
+	sprintf(buffer, "Ready to play!\nLift Hook off Start\nto begin.\r\n");
 	PRINTF(buffer);
 	OLED_Print(buffer);
 }
@@ -136,7 +135,7 @@ void MAIN_ShowWait() {
 void MAIN_ShowBreak() {
 	OLED_Reset();
 
-	sprintf(buffer, "Relax...");
+	sprintf(buffer, "Relax...\r\n");
 	PRINTF(buffer);
 
 	OLED_Print(buffer);
@@ -287,8 +286,8 @@ void MAIN_PwmCalculate() {
 		ledDutycycle = (uint8_t) ceil(hr_factor * 99U);
 		if (ledDutycycle > MAX_PWM) { ledDutycycle = MAX_PWM; }
 
-		//motDutycycle = (uint8_t) ceil(hr_factor * 99U);
-		//if (motDutycycle > MAX_MOT_PWM) { motDutycycle = MAX_MOT_PWM; }
+		motDutycycle = (uint8_t) ceil(hr_factor * 99U);
+		if (motDutycycle > MAX_MOT_PWM) { motDutycycle = MAX_MOT_PWM; }
 
 		break;
 
@@ -329,7 +328,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO1, 0U);
   uint8_t NEW_STATE = STATE;
 
-  PRINTF("GPIO\r\n");
+  //PRINTF("GPIO\r\n");
 
   switch (STATE) {
 
@@ -343,7 +342,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_BREAK_GPIO, BOARD_INITPINS_IO_BREAK_GPIO_PIN) == 0) {
 			NEW_STATE = STATE_BREAK;
-			PRINTF("BREAK from PLAY\r\n");
+			//PRINTF("BREAK from PLAY\r\n");
 
 			runTimer = 0U;
 			MAIN_ShowBreak();
@@ -352,7 +351,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_FINISH_GPIO, BOARD_INITPINS_IO_FINISH_GPIO_PIN) == 0) {
 			NEW_STATE = STATE_FINISH;
-			PRINTF("FINISH from PLAY\r\n");
+			//PRINTF("FINISH from PLAY\r\n");
 
 			runTimer = 0U;
 			displayScore = MAIN_CalculateScore();
@@ -362,7 +361,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
 			NEW_STATE = STATE_WAIT;
-			PRINTF("RESTART from PLAY\r\n");
+			//PRINTF("RESTART from PLAY\r\n");
 
 			MAIN_ResetGame();
 			MAIN_ShowWait();
@@ -375,7 +374,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
 			NEW_STATE = STATE_PLAY;
-			PRINTF("PLAY from BREAK\r\n");
+			//PRINTF("PLAY from BREAK\r\n");
 
 			runTimer = 1U;
 		}
@@ -387,7 +386,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) != 0) {
 			NEW_STATE = STATE_PLAY;
-			PRINTF("PLAY from WAIT\r\n");
+			//PRINTF("PLAY from WAIT\r\n");
 
 			runTimer = 1U;
 		}
@@ -399,7 +398,7 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
 		if (GPIO_PinRead(BOARD_INITPINS_IO_START_GPIO, BOARD_INITPINS_IO_START_GPIO_PIN) == 0) {
 			NEW_STATE = STATE_WAIT;
-			PRINTF("WAIT from FINISH\r\n");
+			//PRINTF("WAIT from FINISH\r\n");
 
 			MAIN_ResetGame();
 			MAIN_ShowWait();
@@ -534,7 +533,7 @@ int main(void)
 	PRINTF("INITIALISED\r\n");
 	OLED_Reset();
 
-	sprintf(buffer, "Waiting...\nPlace Hook on Start");
+	sprintf(buffer, "Waiting...\nPlace Hook on Start\r\n");
 	OLED_Print(buffer);
 	PRINTF(buffer);
 

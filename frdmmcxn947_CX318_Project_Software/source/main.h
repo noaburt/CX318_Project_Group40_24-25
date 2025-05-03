@@ -1,4 +1,10 @@
 
+/* File: main.h
+ *
+ * Last updated: 01\05\2025 - finishing touches, turned down motor PWM, affecting GPIO detection
+ *
+ */
+
 #include "fsl_device_registers.h"
 #include "fsl_debug_console.h"
 #include "pin_mux.h"
@@ -20,7 +26,7 @@
 #define MIN_HR 50
 
 #define MAX_PWM 80
-#define MAX_MOT_PWM 70
+#define MAX_MOT_PWM 99
 
 /* PWM & Timer */
 #define PWM_BASE_DELAY 40000

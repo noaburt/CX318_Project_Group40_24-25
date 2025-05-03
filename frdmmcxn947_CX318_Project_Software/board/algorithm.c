@@ -1,5 +1,9 @@
 
-/* This is an altered version of the file from the provided sample code */
+/* File: algorithm.c
+ *
+ * Last updated: 12\03\2025 - added to project, converted from C++ sample code
+ *
+ */
 
 #include "algorithm.h"
 

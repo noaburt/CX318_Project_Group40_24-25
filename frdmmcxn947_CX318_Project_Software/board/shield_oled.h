@@ -1,3 +1,11 @@
+
+/*
+ * File: shield_oled.h (from EE312 Labs)
+ *
+ *  Created on: 9 Jul 2024
+ *      Author: nxf94807
+ */
+
 #ifndef _SHIELD_OLED_H_
 #define _SHIELD_OLED_H_
 

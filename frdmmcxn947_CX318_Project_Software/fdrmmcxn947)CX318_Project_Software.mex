@@ -672,6 +672,13 @@
             <component name="generic_can" uuid="b5076902-4d46-4899-bb1f-9fbd52bef50f" type_id="generic_can_1bfdd78b1af214566c1f23cf6a582d80">
                <config_set_global name="global_can"/>
             </component>
+            <component name="nvic" uuid="05ecf4ef-5338-4060-9262-70cc31574eee" type_id="nvic"/>
+            <component name="gpio" uuid="54a783e9-62fa-4a0a-b2fc-70bb142879a2" type_id="gpio_2.7.0"/>
+            <component name="unified_types" uuid="9a06f578-72e8-419c-bc6a-1e69c191366a" type_id="unified_types"/>
+            <component name="lpc_dma_global" uuid="38d9e8ae-ce58-46fe-a1f1-9ee6f8090201" type_id="lpc_dma_global"/>
+            <component name="gpdma_global" uuid="b4c39b9f-f6fa-4e58-9630-74d55eac15fb" type_id="gpdma_global"/>
+            <component name="edma_global" uuid="f5972db6-1d93-47a3-b247-0bb012d997ee" type_id="edma_global"/>
+            <component name="dma_global" uuid="ca80e9c6-0f80-41d4-a5e6-c2eb7824ebe4" type_id="dma_global"/>
          </components>
       </periphs>
       <tee name="TEE" version="4.0" enabled="false" update_project_code="true">
