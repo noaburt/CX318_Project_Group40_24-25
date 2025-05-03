@@ -1,6 +1,4 @@
-# CX318_Project_Software
-
----
+# 2024/25 CX318 Project
 
 ## System
 
