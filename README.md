@@ -1,4 +1,4 @@
-# 2024/25 CX318 Project
+# CX318 Project - Group 40 2024/25
 
 ## System
 
